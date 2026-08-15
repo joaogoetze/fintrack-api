@@ -13,7 +13,7 @@ export class WalletRepository {
     async createWallet(name: string, value: number) {
         const { rows } = await pool.query(`
             INSERT INTO wallets
-            (name, value)
+            (name, balance)
             VALUES ($1, $2)
             RETURNING *
             `, [name, value]
