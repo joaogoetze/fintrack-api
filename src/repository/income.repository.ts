@@ -16,7 +16,7 @@ export class IncomeRepository {
     async createIncome(name: string, value: number, date: Date, is_recurring: boolean, wallet_id?: number) {
         const { rows } = await pool.query(`
             INSERT INTO incomes
-            (name, value, date, is_recurring, wallet_id)
+            (name, amount, date, is_recurring, wallet_id)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING *
             `, [name, value, date, is_recurring, wallet_id || null]
