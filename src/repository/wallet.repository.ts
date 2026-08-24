@@ -22,8 +22,6 @@ export class WalletRepository {
     }
     async updateWalletValue(id: number, value: number, operation: string) {
         const operator = operation === "expense" ? '-' : '+';
-
-        console.log("id", id, "value", value, "operator", operator);
         
 
         const { rows } = await pool.query(`

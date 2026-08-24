@@ -6,13 +6,15 @@ export class ExpenseController {
 
     getExpenses = async (req: Request, res: Response) => {
         const month = req.params.month as string;
-        const expenses = await this.expensesService.getExpenses(month);
-        return res.status(200).json(expenses)
+        const expenses = await this.expensesService.getExpenses(month)
+        
+        return res.status(200).json(expenses);
     }
 
-    createExepenss = async (req: Request, res: Response) => {        
-        const { name, value, date, is_recurring, wallet_id } = req.body 
-        const createdExpense = await this.expensesService.createExpense(name, value, date, is_recurring, wallet_id);
+    createExepense = async (req: Request, res: Response) => {            
+        const { name, value, date, due_date, is_recurring, wallet_id } = req.body 
+        
+        const createdExpense = await this.expensesService.createExpense(name, value, date, due_date, is_recurring, wallet_id);
         return res.status(201).json(createdExpense);
     }
 }
