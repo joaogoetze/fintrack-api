@@ -9,7 +9,7 @@ export class ExpenseService {
 
         const data = month + '-01';
                 
-        const rt = await this.recurringTransactionRepository.getRecurringTransactionByDate(month);
+        const rt = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "expense");
         
         const transacoesParaCriar = rt.filter((e) => {
             if (expenses.length <= 0 && rt.length > 0) {

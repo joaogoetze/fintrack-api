@@ -11,8 +11,8 @@ export class IncomeController {
     }
 
     createIncome = async (req: Request, res: Response) => {   
-        const { name, value, date, is_recurring, wallet_id } = req.body 
-        const createdIncome = await this.incomeService.createIncome(name, value, date, is_recurring, wallet_id);
+        const { name, value, date, due_date, is_recurring, wallet_id } = req.body 
+        const createdIncome = await this.incomeService.createIncome(name, value, date, due_date, is_recurring, wallet_id);
         return res.status(201).json(createdIncome);
     }
 }

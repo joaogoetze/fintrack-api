@@ -13,14 +13,14 @@ export class IncomeRepository {
         );
         return rows;
     }
-    async createIncome(name: string, value: number, date: Date, is_recurring: boolean, wallet_id?: number) {
+    async createIncome(name: string, value: number, date: string, due_date?: string, wallet_id?: number, rtId?: number) {
         const { rows } = await pool.query(`
             INSERT INTO incomes
-            (name, amount, date, is_recurring, wallet_id)
-            VALUES ($1, $2, $3, $4, $5)
+            (name, amount, date, due_date, wallet_id, recurring_transaction_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
-            `, [name, value, date, is_recurring, wallet_id || null]
+            `, [name, value, date, due_date || null, wallet_id || null, rtId || null]
         );
-        return rows;
+        return rows[0];
     }
 }

@@ -20,11 +20,11 @@ export class RecurringTransactionRepository {
         return rows[0].id;
     }
 
-    async getRecurringTransactionByDate(date: string) {
+    async getRecurringTransactionByDate(date: string, type: string) {
         
         const { rows } = await pool.query(`
             SELECT * FROM recurring_transactions
-            where start_date <= $1`,[date + '-01']);
+            where start_date <= $1 AND type = $2`,[date + '-01', type]);
             return rows;
     }
 }
