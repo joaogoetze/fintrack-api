@@ -14,14 +14,24 @@ export class ExpenseRepository {
         );
         return rows;
     }
-    async createExpense(name: string, value: number, date: string, due_date?: string, wallet_id?: number, rtId?: number) {
+    async createExpense(name: string, value: number, date: string, due_date?: string, wallet_id?: number, rtId?: number, paid?: boolean) {
         
         const { rows } = await pool.query(`
             INSERT INTO expenses
-            (name, amount, date, due_date, wallet_id, recurring_transaction_id)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            (name, amount, date, due_date, wallet_id, recurring_transaction_id, paid)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
-            `, [name, value, date, due_date || null, wallet_id || null, rtId || null]
+            `, [name, value, date, due_date || null, wallet_id || null, rtId || null, paid ?? true]
+        );
+        return rows[0];
+    }
+    async updatePaidStatus(id: number, paid: boolean) {
+        const { rows } = await pool.query(`
+            UPDATE expenses
+            SET paid = $1
+            WHERE id = $2
+            RETURNING *
+            `, [paid, id]
         );
         return rows[0];
     }

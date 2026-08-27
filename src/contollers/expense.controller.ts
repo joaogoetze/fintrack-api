@@ -17,4 +17,12 @@ export class ExpenseController {
         const createdExpense = await this.expensesService.createExpense(name, value, date, due_date, is_recurring, wallet_id);
         return res.status(201).json(createdExpense);
     }
+
+    updatePaidStatus = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as string);
+        const { paid, wallet_id, value } = req.body;
+        
+        const updatedExpense = await this.expensesService.updatePaidStatus(id, paid, wallet_id, value);
+        return res.status(200).json(updatedExpense);
+    }
 }
