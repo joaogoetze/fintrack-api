@@ -52,7 +52,9 @@ export class IncomeService {
         }        
         
         // Recurring incomes are created as unpaid (paid=false), normal incomes as paid=true
-        let paid = !paide ? paide : !is_recurring;
+        let paid = false;
+        // Recurring expenses are created as unpaid (paid=false), normal expenses as paid=true
+        paid = (!paide ? paide : !is_recurring) || false;
         if (!wallet_id) paid = false;
 
         console.log("paid", paid);

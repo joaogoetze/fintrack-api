@@ -36,13 +36,21 @@ export class ExpenseService {
     }
 
     async createExpense(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {
+        console.log("Criando expense");
+        console.log("carteira", wallet_id);
+
+        
+        
         if (is_recurring) {
             recurring_transaction_id = await this.recurringTransactionRepository.createRecurringTransacion("expense", name, value, date, due_date);
         }        
-        
+        let paid = false;
         // Recurring expenses are created as unpaid (paid=false), normal expenses as paid=true
-        let paid = !paide ? paide : !is_recurring;
+        paid = (!paide ? paide : !is_recurring) || false;
         if (!wallet_id) paid = false;
+
+        console.log("PAID", paid);
+        
         
         const createdExpense = await this.expenseRepository.createExpense(name, value, date, due_date, wallet_id, recurring_transaction_id, paid);
         
