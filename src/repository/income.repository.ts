@@ -23,13 +23,20 @@ export class IncomeRepository {
         );
         return rows[0];
     }
-    async updatePaidStatus(id: number, paid: boolean) {
+    async updatePaidStatus(id: number, paid: boolean, wallet_id?: number | null) {
         const { rows } = await pool.query(`
             UPDATE incomes
-            SET paid = $1
-            WHERE id = $2
+            SET paid = $1, wallet_id = $2
+            WHERE id = $3
             RETURNING *
-            `, [paid, id]
+            `, [paid, wallet_id ?? null, id]
+        );
+        return rows[0];
+    }
+    async getIncomeById(id: number) {
+        const { rows } = await pool.query(`
+            SELECT * FROM incomes WHERE id = $1
+            `, [id]
         );
         return rows[0];
     }

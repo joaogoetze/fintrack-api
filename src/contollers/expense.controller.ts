@@ -22,7 +22,12 @@ export class ExpenseController {
         const id = parseInt(req.params.id as string);
         const { paid, wallet_id, value } = req.body;
         
-        const updatedExpense = await this.expensesService.updatePaidStatus(id, paid, wallet_id, value);
-        return res.status(200).json(updatedExpense);
+        try {
+            const updatedExpense = await this.expensesService.updatePaidStatus(id, paid, wallet_id, value);
+            return res.status(200).json(updatedExpense);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao atualizar status";
+            return res.status(400).json({ message });
+        }
     }
 }

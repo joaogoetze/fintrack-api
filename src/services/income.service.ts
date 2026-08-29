@@ -10,26 +10,27 @@ export class IncomeService {
     ) {}
 
     async getIncomes(month: string) {
+        console.log("Mes", month);
+        
         const incomes = await this.incomeRepository.getIncomes(month);
-
+        console.log("incomes", incomes);
+        
         const data = month + '-01';
+        console.log("Data", data);
+        
                 
         const rt = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "income");
+
+        console.log("Transações recorrentes", rt);
+        
         
         const transacoesParaCriar = rt.filter((e) => {
-            if (incomes.length <= 0 && rt.length > 0) {
-                return rt;
-            }
-            for (const x of incomes) {
-                if (e.id != x.recurring_transaction_id) {
-                    return e;
-                }
-            }
+            return !incomes.some(
+            (income) => income.recurring_transaction_id === e.id
+            );
         });
 
-        console.log('INCOMES', incomes);
-        console.log("incomes pra criar");
-        
+        console.log("Transações pra criar", transacoesParaCriar);
         
 
         for (const income of transacoesParaCriar) {
@@ -64,19 +65,23 @@ export class IncomeService {
     }
 
     async updatePaidStatus(id: number, paid: boolean, wallet_id?: number, value?: number) {
-        const updatedIncome = await this.incomeRepository.updatePaidStatus(id, paid);
-        
-        // Adjust wallet when paid status changes
-        if (wallet_id && value !== undefined) {
-            if (paid) {
-                // Marking as paid: add to wallet
-                await this.walletRepository.updateWalletValue(wallet_id, value, "income");
-            } else {
-                // Marking as unpaid: subtract from wallet (reverse)
-                await this.walletRepository.updateWalletValue(wallet_id, value, "expense");
+        const existing = await this.incomeRepository.getIncomeById(id);
+
+        if (paid) {
+            // Marking as paid: wallet_id is mandatory
+            if (!wallet_id) {
+                throw new Error("wallet_id é obrigatório ao marcar como pago");
             }
+            const updatedIncome = await this.incomeRepository.updatePaidStatus(id, true, wallet_id);
+            await this.walletRepository.updateWalletValue(wallet_id, value ?? existing.amount, "income");
+            return updatedIncome;
         }
-        
-        return updatedIncome;
+
+        // Marking as unpaid: reverse using the stored wallet, then clear wallet_id
+        const storedWalletId = wallet_id ?? existing.wallet_id;
+        if (storedWalletId) {
+            await this.walletRepository.updateWalletValue(storedWalletId, value ?? existing.amount, "expense");
+        }
+        return await this.incomeRepository.updatePaidStatus(id, false, null);
     }
 }

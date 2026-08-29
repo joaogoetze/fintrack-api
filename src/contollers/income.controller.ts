@@ -20,7 +20,12 @@ export class IncomeController {
         const id = parseInt(req.params.id as string);
         const { paid, wallet_id, value } = req.body;
         
-        const updatedIncome = await this.incomeService.updatePaidStatus(id, paid, wallet_id, value);
-        return res.status(200).json(updatedIncome);
+        try {
+            const updatedIncome = await this.incomeService.updatePaidStatus(id, paid, wallet_id, value);
+            return res.status(200).json(updatedIncome);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao atualizar status";
+            return res.status(400).json({ message });
+        }
     }
 }
