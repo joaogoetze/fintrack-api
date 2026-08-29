@@ -52,7 +52,11 @@ export class IncomeService {
         }        
         
         // Recurring incomes are created as unpaid (paid=false), normal incomes as paid=true
-        const paid = !paide ? paide : !is_recurring;
+        let paid = !paide ? paide : !is_recurring;
+        if (!wallet_id) paid = false;
+
+        console.log("paid", paid);
+        
         
         const createdIncome = await this.incomeRepository.createIncome(name, value, date, due_date, wallet_id, recurring_transaction_id, paid);
         

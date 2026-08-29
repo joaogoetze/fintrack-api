@@ -41,7 +41,8 @@ export class ExpenseService {
         }        
         
         // Recurring expenses are created as unpaid (paid=false), normal expenses as paid=true
-        const paid = !paide ? paide : !is_recurring;
+        let paid = !paide ? paide : !is_recurring;
+        if (!wallet_id) paid = false;
         
         const createdExpense = await this.expenseRepository.createExpense(name, value, date, due_date, wallet_id, recurring_transaction_id, paid);
         
