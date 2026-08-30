@@ -16,3 +16,4 @@ const expenseController = new ExpenseController(expenseService)
 expensesRoutes.get("/:month", expenseController.getExpenses);
 expensesRoutes.post("/", expenseController.createExepense);
 expensesRoutes.put("/:id/paid", expenseController.updatePaidStatus);
+expensesRoutes.delete("/:id", expenseController.deleteExpense);

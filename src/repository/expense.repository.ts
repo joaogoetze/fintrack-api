@@ -10,6 +10,7 @@ export class ExpenseRepository {
             LEFT JOIN wallets w ON e.wallet_id = w.id
             WHERE e.date >= $1::date
             AND e.date < ($1::date + INTERVAL '1 month')
+            AND e.deleted_at IS NULL
             `, [month + '-01']
         );
         return rows;
@@ -38,6 +39,16 @@ export class ExpenseRepository {
     async getExpenseById(id: number) {
         const { rows } = await pool.query(`
             SELECT * FROM expenses WHERE id = $1
+            `, [id]
+        );
+        return rows[0];
+    }
+    async softDeleteExpense(id: number) {
+        const { rows } = await pool.query(`
+            UPDATE expenses
+            SET deleted_at = now()
+            WHERE id = $1 AND deleted_at IS NULL
+            RETURNING *
             `, [id]
         );
         return rows[0];

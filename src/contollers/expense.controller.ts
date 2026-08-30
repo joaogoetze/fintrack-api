@@ -30,4 +30,15 @@ export class ExpenseController {
             return res.status(400).json({ message });
         }
     }
+
+    deleteExpense = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as string);
+        try {
+            const deleted = await this.expensesService.softDeleteExpense(id);
+            return res.status(200).json(deleted);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao excluir despesa";
+            return res.status(400).json({ message });
+        }
+    }
 }

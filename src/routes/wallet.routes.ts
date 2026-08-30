@@ -12,3 +12,4 @@ const walletController = new WalletController(walletService)
 walletRoutes.get("/", walletController.getWallets);
 walletRoutes.post("/", walletController.createWallet);
 walletRoutes.put("/:id", walletController.updateWalletValue);
+walletRoutes.delete("/:id", walletController.deleteWallet);

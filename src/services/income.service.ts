@@ -10,18 +10,18 @@ export class IncomeService {
     ) {}
 
     async getIncomes(month: string) {
-        console.log("Mes", month);
+        //console.log("Mes", month);
         
         const incomes = await this.incomeRepository.getIncomes(month);
-        console.log("incomes", incomes);
+        //console.log("incomes", incomes);
         
         const data = month + '-01';
-        console.log("Data", data);
+        //console.log("Data", data);
         
                 
         const rt = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "income");
 
-        console.log("Transações recorrentes", rt);
+        //console.log("Transações recorrentes", rt);
         
         
         const transacoesParaCriar = rt.filter((e) => {
@@ -30,7 +30,7 @@ export class IncomeService {
             );
         });
 
-        console.log("Transações pra criar", transacoesParaCriar);
+        //console.log("Transações pra criar", transacoesParaCriar);
         
 
         for (const income of transacoesParaCriar) {
@@ -47,6 +47,8 @@ export class IncomeService {
     }
 
     async createIncome(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {
+        console.log("Criando income");
+        
         if (is_recurring) {
             recurring_transaction_id = await this.recurringTransactionRepository.createRecurringTransacion("income", name, value, date, due_date);
         }        
@@ -58,12 +60,15 @@ export class IncomeService {
         if (!wallet_id) paid = false;
 
         console.log("paid", paid);
+        console.log("wallet", wallet_id);
         
         
         const createdIncome = await this.incomeRepository.createIncome(name, value, date, due_date, wallet_id, recurring_transaction_id, paid);
         
         // Only update wallet for non-recurring (paid) incomes
         if (wallet_id && paid) {
+            console.log("Atualizar valor");
+            
             await this.walletRepository.updateWalletValue(wallet_id, value, "income");
         }
         
@@ -71,6 +76,8 @@ export class IncomeService {
     }
 
     async updatePaidStatus(id: number, paid: boolean, wallet_id?: number, value?: number) {
+       console.log("É aqui o b.o");
+        
         const existing = await this.incomeRepository.getIncomeById(id);
 
         if (paid) {
@@ -89,5 +96,23 @@ export class IncomeService {
             await this.walletRepository.updateWalletValue(storedWalletId, value ?? existing.amount, "expense");
         }
         return await this.incomeRepository.updatePaidStatus(id, false, null);
+    }
+
+    async softDeleteIncome(id: number) {
+        const existing = await this.incomeRepository.getIncomeById(id);
+
+        if (!existing) {
+            throw new Error("Receita não encontrada");
+        }
+
+        if (existing.recurring_transaction_id) {
+            throw new Error("Receitas recorrentes não podem ser excluídas");
+        }
+
+        if (existing.paid && existing.wallet_id) {
+            await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "expense");
+        }
+
+        return await this.incomeRepository.softDeleteIncome(id);
     }
 }

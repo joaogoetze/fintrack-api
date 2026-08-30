@@ -9,6 +9,7 @@ export class IncomeRepository {
             LEFT JOIN wallets w ON i.wallet_id = w.id
             WHERE i.date >= $1::date
             AND i.date < ($1::date + INTERVAL '1 month')
+            AND i.deleted_at IS NULL
             `, [month + '-01']
         );
         return rows;
@@ -36,6 +37,16 @@ export class IncomeRepository {
     async getIncomeById(id: number) {
         const { rows } = await pool.query(`
             SELECT * FROM incomes WHERE id = $1
+            `, [id]
+        );
+        return rows[0];
+    }
+    async softDeleteIncome(id: number) {
+        const { rows } = await pool.query(`
+            UPDATE incomes
+            SET deleted_at = now()
+            WHERE id = $1 AND deleted_at IS NULL
+            RETURNING *
             `, [id]
         );
         return rows[0];

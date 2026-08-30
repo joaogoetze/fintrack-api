@@ -56,6 +56,8 @@ export class ExpenseService {
         
         // Only update wallet for non-recurring (paid) expenses
         if (wallet_id && paid) {
+            console.log("VAMO MEXER");
+            
             await this.walletRepository.updateWalletValue(wallet_id, value, "expense");
         }
         
@@ -81,5 +83,23 @@ async updatePaidStatus(id: number, paid: boolean, wallet_id?: number, value?: nu
             await this.walletRepository.updateWalletValue(storedWalletId, value ?? existing.amount, "income");
         }
         return await this.expenseRepository.updatePaidStatus(id, false, null);
+    }
+
+    async softDeleteExpense(id: number) {
+        const existing = await this.expenseRepository.getExpenseById(id);
+
+        if (!existing) {
+            throw new Error("Despesa não encontrada");
+        }
+
+        if (existing.recurring_transaction_id) {
+            throw new Error("Despesas recorrentes não podem ser excluídas");
+        }
+
+        if (existing.paid && existing.wallet_id) {
+            await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "income");
+        }
+
+        return await this.expenseRepository.softDeleteExpense(id);
     }
 }

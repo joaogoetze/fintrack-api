@@ -6,6 +6,7 @@ export class WalletRepository {
         const { rows } = await pool.query(`
             SELECT *
             FROM wallets
+            WHERE deleted_at IS NULL
             `
         );
         return rows;
@@ -21,6 +22,8 @@ export class WalletRepository {
         return rows;
     }
     async updateWalletValue(id: number, value: number, operation: string) {
+        console.log("atualizando valor");
+        
         const operator = operation === "expense" ? '-' : '+';
         
 
@@ -30,6 +33,16 @@ export class WalletRepository {
             WHERE id = $2
             RETURNING *
             `, [value, id]
+        );
+        return rows[0];
+    }
+    async softDeleteWallet(id: number) {
+        const { rows } = await pool.query(`
+            UPDATE wallets
+            SET deleted_at = now()
+            WHERE id = $1 AND deleted_at IS NULL
+            RETURNING *
+            `, [id]
         );
         return rows[0];
     }

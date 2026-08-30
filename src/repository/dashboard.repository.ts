@@ -9,12 +9,14 @@ export class DashboardRepository {
                 FROM expenses
                 WHERE expenses.date >= $1::date
                 AND date < ($1::date + INTERVAL '1 month')
+                AND expenses.deleted_at IS NULL
                 ) AS total_expenses,
 
                 (SELECT COALESCE(SUM(amount), 0)
                 FROM incomes
                 WHERE incomes.date >= $1::date
                 AND date < ($1::date + INTERVAL '1 month')
+                AND incomes.deleted_at IS NULL
                 ) AS total_income;
             `,[month + '-01']
         );

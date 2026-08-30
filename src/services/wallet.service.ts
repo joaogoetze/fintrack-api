@@ -14,7 +14,13 @@ export class WalletService {
     }
 
     async updateWalletValue(id: number, value: number, operation: string) {
+        console.log("Toma no cu");
+        
         const updatedWalletValue = await this.walletRepository.updateWalletValue(id, value, operation);
         return updatedWalletValue;
+    }
+
+    async softDeleteWallet(id: number) {
+        return await this.walletRepository.softDeleteWallet(id);
     }
 }
