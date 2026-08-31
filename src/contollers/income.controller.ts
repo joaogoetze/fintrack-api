@@ -39,4 +39,16 @@ export class IncomeController {
             return res.status(400).json({ message });
         }
     }
+
+    updateIncome = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as string);
+        const { name, value, date, due_date, wallet_id } = req.body;
+        try {
+            const updatedIncome = await this.incomeService.updateIncome(id, name, value, date, due_date, wallet_id);
+            return res.status(200).json(updatedIncome);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao editar receita";
+            return res.status(400).json({ message });
+        }
+    }
 }

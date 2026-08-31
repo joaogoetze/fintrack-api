@@ -22,17 +22,24 @@ export class WalletRepository {
         return rows;
     }
     async updateWalletValue(id: number, value: number, operation: string) {
-        console.log("atualizando valor");
-        
         const operator = operation === "expense" ? '-' : '+';
         
-
         const { rows } = await pool.query(`
             UPDATE wallets
             SET balance = balance ${operator} $1
             WHERE id = $2
             RETURNING *
             `, [value, id]
+        );
+        return rows[0];
+    }
+    async updateWalletName(id: number, name: string) {
+        const { rows } = await pool.query(`
+            UPDATE wallets
+            SET name = $1
+            WHERE id = $2
+            RETURNING *
+            `, [name, id]
         );
         return rows[0];
     }

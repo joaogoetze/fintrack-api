@@ -47,37 +47,55 @@ export class IncomeService {
     }
 
     async createIncome(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {
-        console.log("Criando income");
-        
         if (is_recurring) {
             recurring_transaction_id = await this.recurringTransactionRepository.createRecurringTransacion("income", name, value, date, due_date);
         }        
         
-        // Recurring incomes are created as unpaid (paid=false), normal incomes as paid=true
         let paid = false;
-        // Recurring expenses are created as unpaid (paid=false), normal expenses as paid=true
         paid = (!paide ? paide : !is_recurring) || false;
         if (!wallet_id) paid = false;
-
-        console.log("paid", paid);
-        console.log("wallet", wallet_id);
-        
         
         const createdIncome = await this.incomeRepository.createIncome(name, value, date, due_date, wallet_id, recurring_transaction_id, paid);
         
         // Only update wallet for non-recurring (paid) incomes
         if (wallet_id && paid) {
-            console.log("Atualizar valor");
-            
             await this.walletRepository.updateWalletValue(wallet_id, value, "income");
         }
         
         return createdIncome;
     }
 
+    async updateIncome(id: number, name: string, value: number, date: string, due_date: string | null, wallet_id?: number | null) {
+        const existing = await this.incomeRepository.getIncomeById(id);
+
+        if (!existing) {
+            throw new Error("Receita não encontrada");
+        }
+
+        // Revert old wallet effect
+        if (existing.paid && existing.wallet_id) {
+            await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "expense");
+        }
+
+        // Clearing wallet on a paid transaction sets paid=false
+        let newPaid = existing.paid;
+        if (existing.paid && !wallet_id) {
+            newPaid = false;
+        }
+
+        const updatedIncome = await this.incomeRepository.updateIncome(
+            id, name, value, date, due_date ?? null, wallet_id ?? null, newPaid
+        );
+
+        // Apply new wallet effect
+        if (newPaid && wallet_id) {
+            await this.walletRepository.updateWalletValue(wallet_id, value, "income");
+        }
+
+        return updatedIncome;
+    }
+
     async updatePaidStatus(id: number, paid: boolean, wallet_id?: number, value?: number) {
-       console.log("É aqui o b.o");
-        
         const existing = await this.incomeRepository.getIncomeById(id);
 
         if (paid) {

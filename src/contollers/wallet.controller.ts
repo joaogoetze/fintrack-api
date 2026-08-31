@@ -18,7 +18,6 @@ export class WalletController {
     updateWalletValue = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
         const { value, operation } = req.body;
-        console.log("Vamo avacalharrr");
         
         const updatedWalletValue = await this.walletService.updateWalletValue(id, value, operation);
         return res.status(200).json(updatedWalletValue);
@@ -31,6 +30,18 @@ export class WalletController {
             return res.status(200).json(deleted);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Erro ao excluir carteira";
+            return res.status(400).json({ message });
+        }
+    }
+
+    updateWalletName = async (req: Request, res: Response) => {
+        const id = Number(req.params.id);
+        const { name } = req.body;
+        try {
+            const updated = await this.walletService.updateWalletName(id, name);
+            return res.status(200).json(updated);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao editar carteira";
             return res.status(400).json({ message });
         }
     }

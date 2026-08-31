@@ -16,4 +16,5 @@ const incomeController = new IncomeController(incomeService)
 incomeRoutes.get("/:month", incomeController.getIncomes);
 incomeRoutes.post("/", incomeController.createIncome);
 incomeRoutes.put("/:id/paid", incomeController.updatePaidStatus);
+incomeRoutes.put("/:id", incomeController.updateIncome);
 incomeRoutes.delete("/:id", incomeController.deleteIncome);

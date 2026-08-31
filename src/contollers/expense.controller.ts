@@ -41,4 +41,16 @@ export class ExpenseController {
             return res.status(400).json({ message });
         }
     }
+
+    updateExpense = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id as string);
+        const { name, value, date, due_date, wallet_id } = req.body;
+        try {
+            const updatedExpense = await this.expensesService.updateExpense(id, name, value, date, due_date, wallet_id);
+            return res.status(200).json(updatedExpense);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao editar despesa";
+            return res.status(400).json({ message });
+        }
+    }
 }

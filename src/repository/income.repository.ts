@@ -34,6 +34,16 @@ export class IncomeRepository {
         );
         return rows[0];
     }
+    async updateIncome(id: number, name: string, value: number, date: string, due_date: string | null, wallet_id: number | null, paid: boolean) {
+        const { rows } = await pool.query(`
+            UPDATE incomes
+            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5, paid = $6
+            WHERE id = $7
+            RETURNING *
+            `, [name, value, date, due_date, wallet_id, paid, id]
+        );
+        return rows[0];
+    }
     async getIncomeById(id: number) {
         const { rows } = await pool.query(`
             SELECT * FROM incomes WHERE id = $1
