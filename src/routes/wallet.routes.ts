@@ -13,4 +13,5 @@ walletRoutes.get("/", walletController.getWallets);
 walletRoutes.post("/", walletController.createWallet);
 walletRoutes.put("/:id", walletController.updateWalletValue);
 walletRoutes.put("/:id/name", walletController.updateWalletName);
+walletRoutes.put("/:id/update", walletController.updateWallet);
 walletRoutes.delete("/:id", walletController.deleteWallet);

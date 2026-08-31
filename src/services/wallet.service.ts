@@ -22,6 +22,10 @@ export class WalletService {
         return await this.walletRepository.updateWalletName(id, name);
     }
 
+    async updateWallet(id: number, name: string, value: number) {
+        return await this.walletRepository.updateWallet(id, name, value);
+    }
+
     async softDeleteWallet(id: number) {
         return await this.walletRepository.softDeleteWallet(id);
     }

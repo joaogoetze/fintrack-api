@@ -43,6 +43,16 @@ export class WalletRepository {
         );
         return rows[0];
     }
+    async updateWallet(id: number, name: string, value: number) {
+        const { rows } = await pool.query(`
+            UPDATE wallets
+            SET name = $1, balance = $2
+            WHERE id = $3
+            RETURNING *
+            `, [name, value, id]
+        );
+        return rows[0];
+    }
     async softDeleteWallet(id: number) {
         const { rows } = await pool.query(`
             UPDATE wallets

@@ -45,4 +45,16 @@ export class WalletController {
             return res.status(400).json({ message });
         }
     }
+
+    updateWallet = async (req: Request, res: Response) => {
+        const id = Number(req.params.id);
+        const { name, value } = req.body;
+        try {
+            const updated = await this.walletService.updateWallet(id, name, value);
+            return res.status(200).json(updated);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erro ao editar carteira";
+            return res.status(400).json({ message });
+        }
+    }
 }
