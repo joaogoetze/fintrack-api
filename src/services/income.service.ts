@@ -1,6 +1,7 @@
 import { IncomeRepository } from "../repository/income.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
+import { parse, endOfMonth, setDate, format } from "date-fns";
 
 export class IncomeService {
     constructor(
@@ -35,15 +36,19 @@ export class IncomeService {
 
         for (const income of transacoesParaCriar) {
             let data_pae = "";
-                if (income.due_date) {
-                    const day = income.due_date.getDate();
-                    data_pae = month + '-' + day;
-                    
-                }
-                const jones = await this.createIncome(income.name, income.amount, data, data_pae, false, undefined, income.id, false);
-                incomes.push(jones);
+            if (income.due_date) {
+                const targetMonthDate = parse(month, 'yyyy-MM', new Date());
+                const lastDay = endOfMonth(targetMonthDate).getDate();
+                const targetDay = Math.min(income.due_date.getDate(), lastDay);
+                
+                const targetDate = setDate(targetMonthDate, targetDay);
+                data_pae = format(targetDate, 'yyyy-MM-dd');
+            }
+            const jones = await this.createIncome(income.name, income.amount, data, data_pae, false, undefined, income.id, false);
+            incomes.push(jones);
         }        
-        return incomes;
+        const total = incomes.reduce((sum: number, i) => sum + Number(i.amount), 0);
+        return { incomes, total };
     }
 
     async createIncome(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {

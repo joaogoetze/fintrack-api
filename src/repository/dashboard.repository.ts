@@ -22,4 +22,18 @@ export class DashboardRepository {
         );
         return rows[0];
     }
+
+    async getDueExpenses(month: string) {
+        const { rows } = await pool.query(`
+            SELECT e.*, w.name as wallet_name
+            FROM expenses e
+            LEFT JOIN wallets w ON e.wallet_id = w.id
+            WHERE e.due_date >= $1::date
+            AND e.due_date < ($1::date + INTERVAL '1 month')
+            AND e.deleted_at IS NULL
+            ORDER BY e.due_date ASC
+            `, [month + '-01']
+        );
+        return rows;
+    }
 }

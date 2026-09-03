@@ -1,6 +1,7 @@
 import { ExpenseRepository } from "../repository/expense.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
+import { parse, endOfMonth, setDate, format } from "date-fns";
 
 export class ExpenseService {
     constructor(
@@ -24,15 +25,19 @@ export class ExpenseService {
 
         for (const expense of transacoesParaCriar) {
             let data_pae = "";
-                if (expense.due_date) {
-                    const day = expense.due_date.getDate();
-                    data_pae = month + '-' + day;
-                    
-                }
-                const jones = await this.createExpense(expense.name, expense.amount, data, data_pae, false, undefined, expense.id, false);
-                expenses.push(jones);
+            if (expense.due_date) {
+                const targetMonthDate = parse(month, 'yyyy-MM', new Date());
+                const lastDay = endOfMonth(targetMonthDate).getDate();
+                const targetDay = Math.min(expense.due_date.getDate(), lastDay);
+                
+                const targetDate = setDate(targetMonthDate, targetDay);
+                data_pae = format(targetDate, 'yyyy-MM-dd');
+            }
+            const jones = await this.createExpense(expense.name, expense.amount, data, data_pae, false, undefined, expense.id, false);
+            expenses.push(jones);
         }        
-        return expenses;
+        const total = expenses.reduce((sum: number, e) => sum + Number(e.amount), 0);
+        return { expenses, total };
     }
 
     async createExpense(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {

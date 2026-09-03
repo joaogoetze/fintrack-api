@@ -9,4 +9,10 @@ export class DashboardController {
         const sumary = await this.dashboardService.getSumary(month);
         return res.status(200).json(sumary);
     }
+
+    getDueExpenses = async (req: Request, res: Response) => {
+        const month = req.params.month as string;
+        const dueExpenses = await this.dashboardService.getDueExpenses(month);
+        return res.status(200).json(dueExpenses);
+    }
 }
