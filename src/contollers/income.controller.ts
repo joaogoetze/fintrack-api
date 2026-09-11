@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { IncomeService } from "../services/income.service";
+import { IncomeUpdate } from "../types/income";
 
 export class IncomeController {
     constructor(private incomeService: IncomeService) {}
@@ -11,17 +12,17 @@ export class IncomeController {
     }
 
     createIncome = async (req: Request, res: Response) => {   
-        const { name, value, date, due_date, is_recurring, wallet_id } = req.body 
-        const createdIncome = await this.incomeService.createIncome(name, value, date, due_date, is_recurring, wallet_id);
+        const { name, amount, date, due_date, is_recurring, wallet_id } = req.body 
+        const createdIncome = await this.incomeService.createIncome(name, amount, date, due_date, is_recurring, wallet_id);
         return res.status(201).json(createdIncome);
     }
 
     updatePaidStatus = async (req: Request, res: Response) => {
         const id = parseInt(req.params.id as string);
-        const { paid, wallet_id, value } = req.body;
+        const { paid, wallet_id, amount } = req.body;
         
         try {
-            const updatedIncome = await this.incomeService.updatePaidStatus(id, paid, wallet_id, value);
+            const updatedIncome = await this.incomeService.updatePaidStatus(id, paid, wallet_id, amount);
             return res.status(200).json(updatedIncome);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Erro ao atualizar status";
@@ -42,9 +43,10 @@ export class IncomeController {
 
     updateIncome = async (req: Request, res: Response) => {
         const id = parseInt(req.params.id as string);
-        const { name, value, date, due_date, wallet_id } = req.body;
+        const { name, amount, date, due_date, wallet_id, update_rec, recurring_transaction_id   } = req.body;
+        const teste: IncomeUpdate = {id, name, amount, date, due_date, wallet_id, update_rec, recurring_transaction_id}
         try {
-            const updatedIncome = await this.incomeService.updateIncome(id, name, value, date, due_date, wallet_id);
+            const updatedIncome = await this.incomeService.updateIncome(teste);
             return res.status(200).json(updatedIncome);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Erro ao editar receita";

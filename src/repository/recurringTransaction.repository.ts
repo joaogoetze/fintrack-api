@@ -27,4 +27,14 @@ export class RecurringTransactionRepository {
             where start_date <= $1 AND type = $2`,[date + '-01', type]);
             return rows;
     }
+
+    async updateRecurringTransaction(id: number, name: string, amount: number, due_date: string) {
+        const { rows } = await pool.query(`
+            UPDATE recurring_transactions 
+            SET name = $1, amount = $2, due_date = $3
+            WHERE id = $4`,
+        [name, amount, due_date, id]);
+
+        return rows;
+    }
 }

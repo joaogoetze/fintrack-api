@@ -2,6 +2,7 @@ import { ExpenseRepository } from "../repository/expense.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
 import { parse, endOfMonth, setDate, format } from "date-fns";
+import { ExpenseUpdate } from "../types/expense";
 
 export class ExpenseService {
     constructor(
@@ -36,8 +37,9 @@ export class ExpenseService {
             const jones = await this.createExpense(expense.name, expense.amount, data, data_pae, false, undefined, expense.id, false);
             expenses.push(jones);
         }        
-        const total = expenses.reduce((sum: number, e) => sum + Number(e.amount), 0);
-        return { expenses, total };
+        const validExpenses = expenses.filter(e => e.deleted_at === null);
+        const total = validExpenses.reduce((sum: number, e) => sum + Number(e.amount), 0);
+        return { expenses: validExpenses, total };
     }
 
     async createExpense(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {
@@ -58,8 +60,12 @@ export class ExpenseService {
         return createdExpense;
     }
 
-    async updateExpense(id: number, name: string, value: number, date: string, due_date: string | null, wallet_id?: number | null) {
-        const existing = await this.expenseRepository.getExpenseById(id);
+    //async updateExpense(id: number, name: string, amount: number, date: string, due_date: string, wallet_id?: number | null, rec_id?: number | null, update_rec?: boolean | null) {
+    async updateExpense(ex: ExpenseUpdate) {
+        console.log("ex", ex);
+        
+        
+        const existing = await this.expenseRepository.getExpenseById(ex.id);
 
         if (!existing) {
             throw new Error("Despesa não encontrada");
@@ -72,17 +78,26 @@ export class ExpenseService {
 
         // Clearing wallet on a paid transaction sets paid=false
         let newPaid = existing.paid;
-        if (existing.paid && !wallet_id) {
+        if (existing.paid && !ex.wallet_id) {
             newPaid = false;
         }
 
         const updatedExpense = await this.expenseRepository.updateExpense(
-            id, name, value, date, due_date ?? null, wallet_id ?? null, newPaid
+            ex.id, ex.name, ex.amount, ex.date, ex.due_date ?? null, ex.wallet_id ?? null, newPaid
         );
 
         // Apply new wallet effect
-        if (newPaid && wallet_id) {
-            await this.walletRepository.updateWalletValue(wallet_id, value, "expense");
+        if (newPaid && ex.wallet_id) {
+            await this.walletRepository.updateWalletValue(ex.wallet_id, ex.amount, "expense");
+        }
+
+        console.log("update_rec", ex.update_rec);
+        console.log("rec_id", ex.recurring_transaction_id);
+        
+        
+
+        if (ex.update_rec && ex.recurring_transaction_id) {
+            await this.recurringTransactionRepository.updateRecurringTransaction(ex.recurring_transaction_id, ex.name, ex.amount, ex.due_date)
         }
 
         return updatedExpense;
@@ -116,9 +131,7 @@ async updatePaidStatus(id: number, paid: boolean, wallet_id?: number, value?: nu
             throw new Error("Despesa não encontrada");
         }
 
-        if (existing.recurring_transaction_id) {
-            throw new Error("Despesas recorrentes não podem ser excluídas");
-        }
+
 
         if (existing.paid && existing.wallet_id) {
             await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "income");

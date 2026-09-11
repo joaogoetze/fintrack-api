@@ -43,13 +43,15 @@ export class WalletRepository {
         );
         return rows[0];
     }
-    async updateWallet(id: number, name: string, value: number) {
+    async updateWallet(id: number, name: string, balance: number) {
+        console.log("Dalee", id, name, balance);
+        
         const { rows } = await pool.query(`
             UPDATE wallets
             SET name = $1, balance = $2
             WHERE id = $3
             RETURNING *
-            `, [name, value, id]
+            `, [name, balance, id]
         );
         return rows[0];
     }

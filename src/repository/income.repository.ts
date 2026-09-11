@@ -9,18 +9,17 @@ export class IncomeRepository {
             LEFT JOIN wallets w ON i.wallet_id = w.id
             WHERE i.date >= $1::date
             AND i.date < ($1::date + INTERVAL '1 month')
-            AND i.deleted_at IS NULL
             `, [month + '-01']
         );
         return rows;
     }
-    async createIncome(name: string, value: number, date: string, due_date?: string, wallet_id?: number, rtId?: number, paid?: boolean) {
+    async createIncome(name: string, amount: number, date: string, due_date?: string, wallet_id?: number, rtId?: number, paid?: boolean) {
         const { rows } = await pool.query(`
             INSERT INTO incomes
             (name, amount, date, due_date, wallet_id, recurring_transaction_id, paid)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
-            `, [name, value, date, due_date || null, wallet_id || null, rtId || null, paid ?? true]
+            `, [name, amount, date, due_date || null, wallet_id || null, rtId || null, paid ?? true]
         );
         return rows[0];
     }
@@ -34,13 +33,13 @@ export class IncomeRepository {
         );
         return rows[0];
     }
-    async updateIncome(id: number, name: string, value: number, date: string, due_date: string | null, wallet_id: number | null, paid: boolean) {
+    async updateIncome(id: number, name: string, amount: number, date: string, due_date: string | null, wallet_id: number | null, paid: boolean) {
         const { rows } = await pool.query(`
             UPDATE incomes
             SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5, paid = $6
             WHERE id = $7
             RETURNING *
-            `, [name, value, date, due_date, wallet_id, paid, id]
+            `, [name, amount, date, due_date, wallet_id, paid, id]
         );
         return rows[0];
     }

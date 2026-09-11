@@ -17,6 +17,8 @@ export class DashboardService {
             await this.incomeService.getIncomes(month);
 
             const sumary2 = await this.dashboardRepository.getSumary(month);
+            console.log('SSSS', sumary2);
+            
             sumary2.balance = sumary2.total_income - sumary2.total_expenses;
             return sumary2;
         } else {

@@ -3,12 +3,15 @@ import { pool } from '../database';
 
 export class DashboardRepository {
     async getSumary(month: string) {
+        console.log("month", month);
+        
         const { rows } = await pool.query(`
             SELECT
                 (SELECT COALESCE(SUM(amount), 0)
                 FROM expenses
                 WHERE expenses.date >= $1::date
                 AND date < ($1::date + INTERVAL '1 month')
+                AND due_date IS NOT NULL
                 AND expenses.deleted_at IS NULL
                 ) AS total_expenses,
 
@@ -16,6 +19,7 @@ export class DashboardRepository {
                 FROM incomes
                 WHERE incomes.date >= $1::date
                 AND date < ($1::date + INTERVAL '1 month')
+                AND due_date IS NOT NULL
                 AND incomes.deleted_at IS NULL
                 ) AS total_income;
             `,[month + '-01']

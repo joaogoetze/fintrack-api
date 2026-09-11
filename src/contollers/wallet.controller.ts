@@ -17,6 +17,8 @@ export class WalletController {
 
     updateWalletValue = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
+        console.log("req body", req.body);
+        
         const { value, operation } = req.body;
         
         const updatedWalletValue = await this.walletService.updateWalletValue(id, value, operation);
@@ -48,9 +50,11 @@ export class WalletController {
 
     updateWallet = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
-        const { name, value } = req.body;
+        const { name, balance } = req.body;
+        console.log("BODE", req.body);
+        
         try {
-            const updated = await this.walletService.updateWallet(id, name, value);
+            const updated = await this.walletService.updateWallet(id, name, balance);
             return res.status(200).json(updated);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Erro ao editar carteira";

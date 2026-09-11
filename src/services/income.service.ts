@@ -2,6 +2,7 @@ import { IncomeRepository } from "../repository/income.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
 import { parse, endOfMonth, setDate, format } from "date-fns";
+import { IncomeUpdate } from "../types/income";
 
 export class IncomeService {
     constructor(
@@ -47,8 +48,9 @@ export class IncomeService {
             const jones = await this.createIncome(income.name, income.amount, data, data_pae, false, undefined, income.id, false);
             incomes.push(jones);
         }        
-        const total = incomes.reduce((sum: number, i) => sum + Number(i.amount), 0);
-        return { incomes, total };
+        const validIncomes = incomes.filter(i => i.deleted_at === null);
+        const total = validIncomes.reduce((sum: number, i) => sum + Number(i.amount), 0);
+        return { incomes: validIncomes, total };
     }
 
     async createIncome(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {
@@ -70,8 +72,8 @@ export class IncomeService {
         return createdIncome;
     }
 
-    async updateIncome(id: number, name: string, value: number, date: string, due_date: string | null, wallet_id?: number | null) {
-        const existing = await this.incomeRepository.getIncomeById(id);
+    async updateIncome(i: IncomeUpdate) {
+        const existing = await this.incomeRepository.getIncomeById(i.id);
 
         if (!existing) {
             throw new Error("Receita não encontrada");
@@ -84,17 +86,21 @@ export class IncomeService {
 
         // Clearing wallet on a paid transaction sets paid=false
         let newPaid = existing.paid;
-        if (existing.paid && !wallet_id) {
+        if (existing.paid && !i.wallet_id) {
             newPaid = false;
         }
 
         const updatedIncome = await this.incomeRepository.updateIncome(
-            id, name, value, date, due_date ?? null, wallet_id ?? null, newPaid
+            i.id, i.name, i.amount, i.date, i.due_date ?? null, i.wallet_id ?? null, newPaid
         );
 
         // Apply new wallet effect
-        if (newPaid && wallet_id) {
-            await this.walletRepository.updateWalletValue(wallet_id, value, "income");
+        if (newPaid && i.wallet_id) {
+            await this.walletRepository.updateWalletValue(i.wallet_id, i.amount, "income");
+        }
+
+        if (i.update_rec && i.recurring_transaction_id) {
+            await this.recurringTransactionRepository.updateRecurringTransaction(i.recurring_transaction_id, i.name, i.amount, i.due_date)
         }
 
         return updatedIncome;
@@ -128,9 +134,7 @@ export class IncomeService {
             throw new Error("Receita não encontrada");
         }
 
-        if (existing.recurring_transaction_id) {
-            throw new Error("Receitas recorrentes não podem ser excluídas");
-        }
+
 
         if (existing.paid && existing.wallet_id) {
             await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "expense");
