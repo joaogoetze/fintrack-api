@@ -2,141 +2,144 @@ import { ExpenseRepository } from "../repository/expense.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
 import { parse, endOfMonth, setDate, format } from "date-fns";
-import { ExpenseUpdate } from "../types/expense";
+import { CreateExpenseInput, UpdateExpenseInput } from "../types/Expense";
+import { formatDateOnly, withDateOnly } from "../utils/dates";
 
 export class ExpenseService {
     constructor(
-        private expenseRepository: ExpenseRepository, 
+        private expenseRepository: ExpenseRepository,
         private recurringTransactionRepository: RecurringTransactionRepository,
         private walletRepository: WalletRepository
-    ) {}
+    ) { }
 
     async getExpenses(month: string) {
         const expenses = await this.expenseRepository.getExpenses(month);
-
-        const data = month + '-01';
-                
-        const rt = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "expense");
-        
-        const transacoesParaCriar = rt.filter((e) => {
+        const baseDate = month + '-01';
+        const recurringTransactions = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "expense");
+        const transactionsToCreate = recurringTransactions.filter((recurringTx) => {
             return !expenses.some(
-            (expense) => expense.recurring_transaction_id === e.id
+                (expense) => expense.recurringTransactionId === recurringTx.id
             );
         });
-
-        for (const expense of transacoesParaCriar) {
-            let data_pae = "";
-            if (expense.due_date) {
+        for (const recurringTx of transactionsToCreate) {
+            let formattedDueDate = "";
+            if (recurringTx.dueDate) {
                 const targetMonthDate = parse(month, 'yyyy-MM', new Date());
                 const lastDay = endOfMonth(targetMonthDate).getDate();
-                const targetDay = Math.min(expense.due_date.getDate(), lastDay);
-                
+                const sourceDay = typeof recurringTx.dueDate === "string"
+                    ? parseInt(String(recurringTx.dueDate).slice(8, 10), 10)
+                    : new Date(recurringTx.dueDate).getDate();
+                const targetDay = Math.min(sourceDay, lastDay);
+
                 const targetDate = setDate(targetMonthDate, targetDay);
-                data_pae = format(targetDate, 'yyyy-MM-dd');
+                formattedDueDate = format(targetDate, 'yyyy-MM-dd');
             }
-            const jones = await this.createExpense(expense.name, expense.amount, data, data_pae, false, undefined, expense.id, false);
-            expenses.push(jones);
-        }        
-        const validExpenses = expenses.filter(e => e.deleted_at === null);
-        const total = validExpenses.reduce((sum: number, e) => sum + Number(e.amount), 0);
-        return { expenses: validExpenses, total };
-    }
-
-    async createExpense(name: string, value: number, date: string, due_date: string, is_recurring: boolean, wallet_id?: number, recurring_transaction_id?: number, paide?: boolean) {
-        if (is_recurring) {
-            recurring_transaction_id = await this.recurringTransactionRepository.createRecurringTransacion("expense", name, value, date, due_date);
-        }        
-        let paid = false;
-        paid = (!paide ? paide : !is_recurring) || false;
-        if (!wallet_id) paid = false;
-        
-        const createdExpense = await this.expenseRepository.createExpense(name, value, date, due_date, wallet_id, recurring_transaction_id, paid);
-        
-        // Only update wallet for non-recurring (paid) expenses
-        if (wallet_id && paid) {
-            await this.walletRepository.updateWalletValue(wallet_id, value, "expense");
+            const toCreate: CreateExpenseInput = { name: recurringTx.name, amount: recurringTx.amount, date: baseDate, dueDate: formattedDueDate, isRecurring: false, paid: false }
+            const createdExpense = await this.createExpense(toCreate);
+            expenses.push(createdExpense);
         }
-        
-        return createdExpense;
+        const validExpenses = expenses.filter(e => e.deletedAt === null);
+        const total = validExpenses.reduce((sum: number, e) => sum + Number(e.amount), 0);
+        const formattedExpenses = validExpenses.map((expense) => ({
+            id: expense.id,
+            name: expense.name,
+            amount: expense.amount,
+            date: expense.date
+                ? format(new Date(expense.date), "yyyy-MM-dd")
+                : null,
+            walletId: expense.walletId,
+            walletName: expense.walletName,
+            recurringTransactionId: expense.recurringTransactionId,
+            dueDate: expense.dueDate
+                ? format(new Date(expense.dueDate), "yyyy-MM-dd")
+                : null,
+            paid: expense.paid,
+            deletedAt: expense.deletedAt,
+        }));
+        return { expenses: formattedExpenses, total };
     }
 
-    //async updateExpense(id: number, name: string, amount: number, date: string, due_date: string, wallet_id?: number | null, rec_id?: number | null, update_rec?: boolean | null) {
-    async updateExpense(ex: ExpenseUpdate) {
-        console.log("ex", ex);
-        
-        
+    async createExpense(data: CreateExpenseInput) {
+        const { isRecurring, name, amount, date, dueDate, paid, walletId } = data
+
+        let recurringTransactionId = null;
+
+        if (isRecurring) {
+            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion("expense", name, amount, date, dueDate);
+        }
+
+        const isPaid = Boolean(paid && !isRecurring && walletId);
+
+        const createdExpense = await this.expenseRepository.createExpense(name, amount, date, dueDate, walletId, recurringTransactionId, isPaid);
+
+        if (walletId && isPaid) {
+            await this.walletRepository.updateWalletValue(walletId, amount, "expense");
+        }
+
+        return withDateOnly(createdExpense);
+    }
+
+    async updateExpense(ex: UpdateExpenseInput) {
         const existing = await this.expenseRepository.getExpenseById(ex.id);
 
         if (!existing) {
             throw new Error("Despesa não encontrada");
         }
 
-        // Revert old wallet effect
-        if (existing.paid && existing.wallet_id) {
-            await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "income");
+        if (existing.paid && existing.walletId) {
+            await this.walletRepository.updateWalletValue(existing.walletId, Number(existing.amount), "income");
         }
 
-        // Clearing wallet on a paid transaction sets paid=false
-        let newPaid = existing.paid;
-        if (existing.paid && !ex.wallet_id) {
-            newPaid = false;
-        }
+        const newName = ex.name ?? existing.name;
+        const newAmount = ex.amount ?? existing.amount;
+        const newDate = formatDateOnly(ex.date ?? existing.date) ?? "";
+        const newDueDate = formatDateOnly(ex.dueDate !== undefined ? ex.dueDate : existing.dueDate);
+        const newWalletId = ex.walletId !== undefined ? ex.walletId : existing.walletId;
+
+        const newPaid = Boolean((ex.paid ?? existing.paid) && newWalletId);
 
         const updatedExpense = await this.expenseRepository.updateExpense(
-            ex.id, ex.name, ex.amount, ex.date, ex.due_date ?? null, ex.wallet_id ?? null, newPaid
+            ex.id, newName, newAmount, newDate, newDueDate, newWalletId, newPaid
         );
 
-        // Apply new wallet effect
-        if (newPaid && ex.wallet_id) {
-            await this.walletRepository.updateWalletValue(ex.wallet_id, ex.amount, "expense");
+        if (newPaid && newWalletId) {
+            await this.walletRepository.updateWalletValue(newWalletId, newAmount, "expense");
+        }
+        if (ex.updateRecurringTransaction && ex.recurringTransactionId) {
+            await this.recurringTransactionRepository.updateRecurringTransaction(ex.recurringTransactionId, newName, newAmount, newDueDate)
         }
 
-        console.log("update_rec", ex.update_rec);
-        console.log("rec_id", ex.recurring_transaction_id);
-        
-        
-
-        if (ex.update_rec && ex.recurring_transaction_id) {
-            await this.recurringTransactionRepository.updateRecurringTransaction(ex.recurring_transaction_id, ex.name, ex.amount, ex.due_date)
-        }
-
-        return updatedExpense;
+        return withDateOnly(updatedExpense);
     }
 
-async updatePaidStatus(id: number, paid: boolean, wallet_id?: number, value?: number) {
-        const existing = await this.expenseRepository.getExpenseById(id);
-
-        if (paid) {
-            // Marking as paid: wallet_id is mandatory
-            if (!wallet_id) {
-                throw new Error("wallet_id é obrigatório ao marcar como pago");
-            }
-            const updatedExpense = await this.expenseRepository.updatePaidStatus(id, true, wallet_id);
-            await this.walletRepository.updateWalletValue(wallet_id, value ?? existing.amount, "expense");
-            return updatedExpense;
-        }
-
-        // Marking as unpaid: reverse using the stored wallet, then clear wallet_id
-        const storedWalletId = wallet_id ?? existing.wallet_id;
-        if (storedWalletId) {
-            await this.walletRepository.updateWalletValue(storedWalletId, value ?? existing.amount, "income");
-        }
-        return await this.expenseRepository.updatePaidStatus(id, false, null);
-    }
-
-    async softDeleteExpense(id: number) {
+    async deleteExpense(id: number) {
         const existing = await this.expenseRepository.getExpenseById(id);
 
         if (!existing) {
             throw new Error("Despesa não encontrada");
         }
+        if (existing.paid && existing.walletId) {
+            await this.walletRepository.updateWalletValue(existing.walletId, Number(existing.amount), "income");
+        }
+        return withDateOnly(await this.expenseRepository.deleteExpense(id));
+    }
 
+    async updatePaidStatus(id: number, paid: boolean, walletId?: number, value?: number) {
+        const existing = await this.expenseRepository.getExpenseById(id);
 
-
-        if (existing.paid && existing.wallet_id) {
-            await this.walletRepository.updateWalletValue(existing.wallet_id, Number(existing.amount), "income");
+        if (paid) {
+            if (!walletId) {
+                throw new Error("walletId é obrigatório ao marcar como pago");
+            }
+            const updatedExpense = await this.expenseRepository.updatePaidStatus(id, true, walletId);
+            await this.walletRepository.updateWalletValue(walletId, value ?? existing.amount, "expense");
+            return withDateOnly(updatedExpense);
         }
 
-        return await this.expenseRepository.softDeleteExpense(id);
+        const storedWalletId = walletId ?? existing.walletId;
+        if (storedWalletId) {
+            await this.walletRepository.updateWalletValue(storedWalletId, value ?? existing.amount, "income");
+        }
+        return withDateOnly(await this.expenseRepository.updatePaidStatus(id, false, null));
     }
 }

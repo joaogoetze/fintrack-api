@@ -7,8 +7,6 @@ export class DashboardController {
     getSumary = async (req: Request, res: Response) => {
         const month = req.params.month as string;
         const sumary = await this.dashboardService.getSumary(month);
-        console.log("sumary", sumary);
-        
         return res.status(200).json(sumary);
     }
 

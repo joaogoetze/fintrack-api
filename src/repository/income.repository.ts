@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { pool } from '../database';
+import { toCamel, toCamelMany } from '../utils/case';
 
 export class IncomeRepository {
     async getIncomes(month: string) {
@@ -11,7 +12,7 @@ export class IncomeRepository {
             AND i.date < ($1::date + INTERVAL '1 month')
             `, [month + '-01']
         );
-        return rows;
+        return toCamelMany(rows);
     }
     async createIncome(name: string, amount: number, date: string, due_date?: string, wallet_id?: number, rtId?: number, paid?: boolean) {
         const { rows } = await pool.query(`
@@ -21,7 +22,7 @@ export class IncomeRepository {
             RETURNING *
             `, [name, amount, date, due_date || null, wallet_id || null, rtId || null, paid ?? true]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
     async updatePaidStatus(id: number, paid: boolean, wallet_id?: number | null) {
         const { rows } = await pool.query(`
@@ -31,7 +32,7 @@ export class IncomeRepository {
             RETURNING *
             `, [paid, wallet_id ?? null, id]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
     async updateIncome(id: number, name: string, amount: number, date: string, due_date: string | null, wallet_id: number | null, paid: boolean) {
         const { rows } = await pool.query(`
@@ -41,16 +42,16 @@ export class IncomeRepository {
             RETURNING *
             `, [name, amount, date, due_date, wallet_id, paid, id]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
     async getIncomeById(id: number) {
         const { rows } = await pool.query(`
             SELECT * FROM incomes WHERE id = $1
             `, [id]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
-    async softDeleteIncome(id: number) {
+    async deleteIncome(id: number) {
         const { rows } = await pool.query(`
             UPDATE incomes
             SET deleted_at = now()
@@ -58,6 +59,6 @@ export class IncomeRepository {
             RETURNING *
             `, [id]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
 }

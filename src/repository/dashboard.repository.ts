@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import { pool } from '../database';
+import { toCamel, toCamelMany } from '../utils/case';
 
 export class DashboardRepository {
     async getSumary(month: string) {
-        console.log("month", month);
-        
+
         const { rows } = await pool.query(`
             SELECT
                 (SELECT COALESCE(SUM(amount), 0)
@@ -22,9 +22,9 @@ export class DashboardRepository {
                 AND due_date IS NOT NULL
                 AND incomes.deleted_at IS NULL
                 ) AS total_income;
-            `,[month + '-01']
+            `, [month + '-01']
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
 
     async getDueExpenses(month: string) {
@@ -38,6 +38,6 @@ export class DashboardRepository {
             ORDER BY e.due_date ASC
             `, [month + '-01']
         );
-        return rows;
+        return toCamelMany(rows);
     }
 }

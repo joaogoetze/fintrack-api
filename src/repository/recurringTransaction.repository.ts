@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { pool } from '../database';
+import { toCamelMany } from '../utils/case';
 
 export class RecurringTransactionRepository {
     async createRecurringTransacion(
@@ -7,7 +8,7 @@ export class RecurringTransactionRepository {
         name: string, 
         amount: number,
         start_date: string,
-        due_date?: string
+        due_date?: string | null
     ) {
         
         const { rows } = await pool.query(`
@@ -25,10 +26,10 @@ export class RecurringTransactionRepository {
         const { rows } = await pool.query(`
             SELECT * FROM recurring_transactions
             where start_date <= $1 AND type = $2`,[date + '-01', type]);
-            return rows;
+            return toCamelMany(rows);
     }
 
-    async updateRecurringTransaction(id: number, name: string, amount: number, due_date: string) {
+    async updateRecurringTransaction(id: number, name: string, amount: number, due_date: string | null) {
         const { rows } = await pool.query(`
             UPDATE recurring_transactions 
             SET name = $1, amount = $2, due_date = $3

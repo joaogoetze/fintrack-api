@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { expensesRoutes } from './expense.routes';
+import { expenseRoutes } from './expense.routes';
 import { incomeRoutes } from './income.routes';
-import { dashboardsRoutes } from './dashboard.routes';
+import { dashboardRoutes } from './dashboard.routes';
 import { walletRoutes } from './wallet.routes';
 
 export const routes = Router();
 
-routes.use("/expenses", expensesRoutes);
+routes.use("/expenses", expenseRoutes);
 routes.use("/incomes", incomeRoutes);
-routes.use("/dashboard", dashboardsRoutes);
+routes.use("/dashboard", dashboardRoutes);
 routes.use("/wallets", walletRoutes);

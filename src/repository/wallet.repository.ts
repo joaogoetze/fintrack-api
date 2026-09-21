@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { pool } from '../database';
+import { toCamel, toCamelMany } from '../utils/case';
 
 export class WalletRepository {
     async getWallets() {
@@ -9,7 +10,7 @@ export class WalletRepository {
             WHERE deleted_at IS NULL
             `
         );
-        return rows;
+        return toCamelMany(rows);
     }
     async createWallet(name: string, value: number) {
         const { rows } = await pool.query(`
@@ -19,11 +20,11 @@ export class WalletRepository {
             RETURNING *
             `, [name, value]
         );
-        return rows;
+        return toCamelMany(rows);
     }
     async updateWalletValue(id: number, value: number, operation: string) {
         const operator = operation === "expense" ? '-' : '+';
-        
+
         const { rows } = await pool.query(`
             UPDATE wallets
             SET balance = balance ${operator} $1
@@ -31,21 +32,9 @@ export class WalletRepository {
             RETURNING *
             `, [value, id]
         );
-        return rows[0];
-    }
-    async updateWalletName(id: number, name: string) {
-        const { rows } = await pool.query(`
-            UPDATE wallets
-            SET name = $1
-            WHERE id = $2
-            RETURNING *
-            `, [name, id]
-        );
-        return rows[0];
+        return toCamel(rows[0]);
     }
     async updateWallet(id: number, name: string, balance: number) {
-        console.log("Dalee", id, name, balance);
-        
         const { rows } = await pool.query(`
             UPDATE wallets
             SET name = $1, balance = $2
@@ -53,9 +42,9 @@ export class WalletRepository {
             RETURNING *
             `, [name, balance, id]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
-    async softDeleteWallet(id: number) {
+    async deleteWallet(id: number) {
         const { rows } = await pool.query(`
             UPDATE wallets
             SET deleted_at = now()
@@ -63,6 +52,6 @@ export class WalletRepository {
             RETURNING *
             `, [id]
         );
-        return rows[0];
+        return toCamel(rows[0]);
     }
 }

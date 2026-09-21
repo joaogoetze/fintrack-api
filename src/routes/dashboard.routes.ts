@@ -9,7 +9,7 @@ import { WalletRepository } from "../repository/wallet.repository";
 import { ExpenseService } from "../services/expense.service";
 import { IncomeService } from "../services/income.service";
 
-export const dashboardsRoutes = Router();
+export const dashboardRoutes = Router();
 
 const dashboardRepository = new DashboardRepository();
 const expenseRepository = new ExpenseRepository();
@@ -21,5 +21,5 @@ const incomeService = new IncomeService(incomeRepository, recurringTransactionRe
 const dashboardService = new DashboardService(dashboardRepository, expenseService, incomeService);
 const dashboardController = new DashboardController(dashboardService)
 
-dashboardsRoutes.get("/sumary/:month", dashboardController.getSumary);
-dashboardsRoutes.get("/dues/:month", dashboardController.getDueExpenses);
+dashboardRoutes.get("/summary/:month", dashboardController.getSumary);
+dashboardRoutes.get("/dues/:month", dashboardController.getDueExpenses);
