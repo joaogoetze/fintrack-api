@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { DashboardController } from "../contollers/dashboard.controller";
+import { DashboardController } from "../controllers/dashboard.controller";
 import { DashboardService } from "../services/dashboard.service";
 import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseRepository } from "../repository/expense.repository";

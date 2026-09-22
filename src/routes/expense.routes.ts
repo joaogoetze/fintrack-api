@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ExpenseController } from "../contollers/expense.controller";
+import { ExpenseController } from "../controllers/expense.controller";
 import { ExpenseService } from "../services/expense.service";
 import { ExpenseRepository } from "../repository/expense.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
