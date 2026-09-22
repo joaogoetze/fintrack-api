@@ -22,3 +22,9 @@ export const dueExpenseSchema = z.object({
 });
 
 export type DueExpense = z.infer<typeof dueExpenseSchema>;
+
+export const dueTransactionSchema = dueExpenseSchema.extend({
+    type: z.enum(["income", "expense"]),
+});
+
+export type DueTransaction = z.infer<typeof dueTransactionSchema>;
