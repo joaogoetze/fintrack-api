@@ -1,9 +1,11 @@
 import 'dotenv/config';
 import { pool } from '../database';
 import { toCamel, toCamelMany } from '../utils/case';
+import { Wallet, WalletOperation } from '../types/Wallet';
 
 export class WalletRepository {
-    async getWallets() {
+
+    async getWallets(): Promise<Wallet[]> {
         const { rows } = await pool.query(`
             SELECT *
             FROM wallets
@@ -12,7 +14,8 @@ export class WalletRepository {
         );
         return toCamelMany(rows);
     }
-    async createWallet(name: string, value: number) {
+
+    async createWallet(name: string, value: number): Promise<Wallet> {
         const { rows } = await pool.query(`
             INSERT INTO wallets
             (name, balance)
@@ -20,9 +23,10 @@ export class WalletRepository {
             RETURNING *
             `, [name, value]
         );
-        return toCamelMany(rows);
+        return toCamel(rows[0]);
     }
-    async updateWalletValue(id: number, value: number, operation: string) {
+
+    async updateWalletValue(id: number, value: number, operation: WalletOperation): Promise<Wallet> {
         const operator = operation === "expense" ? '-' : '+';
 
         const { rows } = await pool.query(`
@@ -34,7 +38,8 @@ export class WalletRepository {
         );
         return toCamel(rows[0]);
     }
-    async updateWallet(id: number, name: string, balance: number) {
+
+    async updateWallet(id: number, name: string, balance: number): Promise<Wallet> {
         const { rows } = await pool.query(`
             UPDATE wallets
             SET name = $1, balance = $2
@@ -44,7 +49,8 @@ export class WalletRepository {
         );
         return toCamel(rows[0]);
     }
-    async deleteWallet(id: number) {
+
+    async deleteWallet(id: number): Promise<Wallet> {
         const { rows } = await pool.query(`
             UPDATE wallets
             SET deleted_at = now()

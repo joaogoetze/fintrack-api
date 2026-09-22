@@ -2,7 +2,7 @@ import { ExpenseRepository } from "../repository/expense.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
 import { parse, endOfMonth, setDate, format } from "date-fns";
-import { CreateExpenseInput, UpdateExpenseInput } from "../types/Expense";
+import { CreateExpenseInput, UpdateExpenseInput, Expense, ExpensesResponse } from "../types/Expense";
 import { formatDateOnly, withDateOnly } from "../utils/dates";
 
 export class ExpenseService {
@@ -12,7 +12,7 @@ export class ExpenseService {
         private walletRepository: WalletRepository
     ) { }
 
-    async getExpenses(month: string) {
+    async getExpenses(month: string): Promise<ExpensesResponse> {
         const expenses = await this.expenseRepository.getExpenses(month);
         const baseDate = month + '-01';
         const recurringTransactions = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "expense");
@@ -59,18 +59,18 @@ export class ExpenseService {
         return { expenses: formattedExpenses, total };
     }
 
-    async createExpense(data: CreateExpenseInput) {
+    async createExpense(data: CreateExpenseInput): Promise<Expense> {
         const { isRecurring, name, amount, date, dueDate, paid, walletId } = data
 
         let recurringTransactionId = null;
 
         if (isRecurring) {
-            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion("expense", name, amount, date, dueDate);
+            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion({ type: "expense", name, amount, startDate: date, dueDate });
         }
 
         const isPaid = Boolean(paid && !isRecurring && walletId);
 
-        const createdExpense = await this.expenseRepository.createExpense(name, amount, date, dueDate, walletId, recurringTransactionId, isPaid);
+        const createdExpense = await this.expenseRepository.createExpense({ name, amount, date, dueDate, walletId, recurringTransactionId, paid: isPaid });
 
         if (walletId && isPaid) {
             await this.walletRepository.updateWalletValue(walletId, amount, "expense");
@@ -79,7 +79,7 @@ export class ExpenseService {
         return withDateOnly(createdExpense);
     }
 
-    async updateExpense(ex: UpdateExpenseInput) {
+    async updateExpense(ex: UpdateExpenseInput): Promise<Expense> {
         const existing = await this.expenseRepository.getExpenseById(ex.id);
 
         if (!existing) {
@@ -98,21 +98,21 @@ export class ExpenseService {
 
         const newPaid = Boolean((ex.paid ?? existing.paid) && newWalletId);
 
-        const updatedExpense = await this.expenseRepository.updateExpense(
-            ex.id, newName, newAmount, newDate, newDueDate, newWalletId, newPaid
-        );
+        const updatedExpense = await this.expenseRepository.updateExpense({
+            id: ex.id, name: newName, amount: newAmount, date: newDate, dueDate: newDueDate, walletId: newWalletId, paid: newPaid
+        });
 
         if (newPaid && newWalletId) {
             await this.walletRepository.updateWalletValue(newWalletId, newAmount, "expense");
         }
         if (ex.updateRecurringTransaction && ex.recurringTransactionId) {
-            await this.recurringTransactionRepository.updateRecurringTransaction(ex.recurringTransactionId, newName, newAmount, newDueDate)
+            await this.recurringTransactionRepository.updateRecurringTransaction({ id: ex.recurringTransactionId, name: newName, amount: newAmount, dueDate: newDueDate })
         }
 
         return withDateOnly(updatedExpense);
     }
 
-    async deleteExpense(id: number) {
+    async deleteExpense(id: number): Promise<Expense> {
         const existing = await this.expenseRepository.getExpenseById(id);
 
         if (!existing) {
@@ -124,8 +124,12 @@ export class ExpenseService {
         return withDateOnly(await this.expenseRepository.deleteExpense(id));
     }
 
-    async updatePaidStatus(id: number, paid: boolean, walletId?: number, value?: number) {
+    async updatePaidStatus(id: number, paid: boolean, walletId?: number, value?: number): Promise<Expense> {
         const existing = await this.expenseRepository.getExpenseById(id);
+
+        if (!existing) {
+            throw new Error("Despesa não encontrada");
+        }
 
         if (paid) {
             if (!walletId) {

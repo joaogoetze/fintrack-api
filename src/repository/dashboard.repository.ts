@@ -1,10 +1,12 @@
 import 'dotenv/config';
 import { pool } from '../database';
 import { toCamel, toCamelMany } from '../utils/case';
+import { Summary, DueExpense } from '../types/Dashboard';
+import { Expense } from '../types/Expense';
 
 export class DashboardRepository {
-    async getSumary(month: string) {
 
+    async getSumary(month: string): Promise<Summary> {
         const { rows } = await pool.query(`
             SELECT
                 (SELECT COALESCE(SUM(amount), 0)
@@ -14,7 +16,6 @@ export class DashboardRepository {
                 AND due_date IS NOT NULL
                 AND expenses.deleted_at IS NULL
                 ) AS total_expenses,
-
                 (SELECT COALESCE(SUM(amount), 0)
                 FROM incomes
                 WHERE incomes.date >= $1::date
@@ -27,7 +28,7 @@ export class DashboardRepository {
         return toCamel(rows[0]);
     }
 
-    async getDueExpenses(month: string) {
+    async getDueExpenses(month: string): Promise<Expense[]> {
         const { rows } = await pool.query(`
             SELECT e.*, w.name as wallet_name
             FROM expenses e

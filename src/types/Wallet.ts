@@ -7,6 +7,10 @@ const walletSchema = z.object({
     deletedAt: z.coerce.date().nullable(),
 });
 
+export type Wallet = z.infer<typeof walletSchema>;
+
+export type WalletOperation = "income" | "expense";
+
 export const createWalletRequest = walletSchema.omit({ id: true, deletedAt: true });
 
 export type CreateWalletInput = z.infer<typeof createWalletRequest>;

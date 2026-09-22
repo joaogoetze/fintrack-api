@@ -2,6 +2,7 @@ import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseService } from "./expense.service";
 import { IncomeService } from "./income.service";
 import { format } from "date-fns";
+import { Summary, DueExpense } from "../types/Dashboard";
 
 export class DashboardService {
     constructor(
@@ -10,7 +11,7 @@ export class DashboardService {
         private incomeService: IncomeService
     ) { }
 
-    async getSumary(month: string) {
+    async getSumary(month: string): Promise<Summary> {
         let summary = await this.dashboardRepository.getSumary(month);
 
         if (Number(summary.totalExpenses) == 0 && Number(summary.totalIncome) == 0) {
@@ -24,7 +25,7 @@ export class DashboardService {
         return { totalIncome, totalExpenses, balance: totalIncome - totalExpenses };
     }
 
-    async getDueExpenses(month: string) {
+    async getDueExpenses(month: string): Promise<DueExpense[]> {
         await this.expenseService.getExpenses(month);
         const dueExpenses = await this.dashboardRepository.getDueExpenses(month);
         return dueExpenses.map((e) => ({

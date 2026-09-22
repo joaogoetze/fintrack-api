@@ -2,7 +2,7 @@ import { IncomeRepository } from "../repository/income.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
 import { parse, endOfMonth, setDate, format } from "date-fns";
-import { CreateIncomeInput, UpdateIncomeInput } from "../types/Income";
+import { CreateIncomeInput, UpdateIncomeInput, Income, IncomesResponse } from "../types/Income";
 import { formatDateOnly, withDateOnly } from "../utils/dates";
 
 export class IncomeService {
@@ -12,7 +12,7 @@ export class IncomeService {
         private walletRepository: WalletRepository
     ) { }
 
-    async getIncomes(month: string) {
+    async getIncomes(month: string): Promise<IncomesResponse> {
 
         const incomes = await this.incomeRepository.getIncomes(month);
         const baseDate = month + '-01';
@@ -63,16 +63,16 @@ export class IncomeService {
         return { incomes: formattedIncomes, total };
     }
 
-    async createIncome(data: CreateIncomeInput) {
+    async createIncome(data: CreateIncomeInput): Promise<Income> {
         let { name, amount, date, dueDate, isRecurring, walletId, recurringTransactionId, paid } = data;
 
         if (isRecurring) {
-            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion("income", name, amount, date, dueDate ?? undefined);
+            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion({ type: "income", name, amount, startDate: date, dueDate });
         }
 
         const isPaid = Boolean((paid !== undefined ? paid : !isRecurring) && walletId);
 
-        const createdIncome = await this.incomeRepository.createIncome(name, amount, date, dueDate ?? undefined, walletId ?? undefined, recurringTransactionId ?? undefined, isPaid);
+        const createdIncome = await this.incomeRepository.createIncome({ name, amount, date, dueDate, walletId, recurringTransactionId, paid: isPaid });
 
         if (walletId && isPaid) {
             await this.walletRepository.updateWalletValue(walletId, amount, "income");
@@ -81,7 +81,7 @@ export class IncomeService {
         return withDateOnly(createdIncome);
     }
 
-    async updateIncome(i: UpdateIncomeInput) {
+    async updateIncome(i: UpdateIncomeInput): Promise<Income> {
         const existing = await this.incomeRepository.getIncomeById(i.id);
 
         if (!existing) {
@@ -100,23 +100,27 @@ export class IncomeService {
 
         const newPaid = Boolean((i.paid ?? existing.paid) && newWalletId);
 
-        const updatedIncome = await this.incomeRepository.updateIncome(
-            i.id, newName, newAmount, newDate, newDueDate, newWalletId, newPaid
-        );
+        const updatedIncome = await this.incomeRepository.updateIncome({
+            id: i.id, name: newName, amount: newAmount, date: newDate, dueDate: newDueDate, walletId: newWalletId, paid: newPaid
+        });
 
         if (newPaid && newWalletId) {
             await this.walletRepository.updateWalletValue(newWalletId, newAmount, "income");
         }
 
         if (i.updateRecurringTransaction && i.recurringTransactionId) {
-            await this.recurringTransactionRepository.updateRecurringTransaction(i.recurringTransactionId, newName, newAmount, newDueDate)
+            await this.recurringTransactionRepository.updateRecurringTransaction({ id: i.recurringTransactionId, name: newName, amount: newAmount, dueDate: newDueDate })
         }
 
         return withDateOnly(updatedIncome);
     }
 
-    async updatePaidStatus(id: number, paid: boolean, walletId?: number, value?: number) {
+    async updatePaidStatus(id: number, paid: boolean, walletId?: number, value?: number): Promise<Income> {
         const existing = await this.incomeRepository.getIncomeById(id);
+
+        if (!existing) {
+            throw new Error("Receita não encontrada");
+        }
 
         if (paid) {
             if (!walletId) {
@@ -134,7 +138,7 @@ export class IncomeService {
         return withDateOnly(await this.incomeRepository.updatePaidStatus(id, false, null));
     }
 
-    async deleteIncome(id: number) {
+    async deleteIncome(id: number): Promise<Income> {
         const existing = await this.incomeRepository.getIncomeById(id);
 
         if (!existing) {
