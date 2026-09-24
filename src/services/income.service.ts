@@ -1,9 +1,9 @@
 import { IncomeRepository } from "../repository/income.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
-import { parse, endOfMonth, setDate, format } from "date-fns";
-import { CreateIncomeInput, UpdateIncomeInput, Income, IncomesResponse } from "../types/Income";
+import { CreateIncomeInput, UpdateIncomeInput, Income, IncomeListItem, IncomesResponse } from "../types/Income";
 import { formatDateOnly, withDateOnly } from "../utils/dates";
+import { materializeRecurring, toListResponse } from "../utils/transactions";
 
 export class IncomeService {
     constructor(
@@ -13,54 +13,16 @@ export class IncomeService {
     ) { }
 
     async getIncomes(month: string): Promise<IncomesResponse> {
-
         const incomes = await this.incomeRepository.getIncomes(month);
-        const baseDate = month + '-01';
-
-        const recurringTransactions = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "income");
-
-        const transactionsToCreate = recurringTransactions.filter((recurringTx) => {
-            return !incomes.some(
-                (income) => income.recurringTransactionId === recurringTx.id
-            );
+        await materializeRecurring({
+            month,
+            type: "income",
+            existing: incomes,
+            listRecurring: (m, t) => this.recurringTransactionRepository.getRecurringTransactionByDate(m, t),
+            create: (data) => this.createIncome(data),
         });
-
-        for (const recurringTx of transactionsToCreate) {
-            let formattedDueDate = "";
-            if (recurringTx.dueDate) {
-                const targetMonthDate = parse(month, 'yyyy-MM', new Date());
-                const lastDay = endOfMonth(targetMonthDate).getDate();
-                const sourceDay = typeof recurringTx.dueDate === "string"
-                    ? parseInt(String(recurringTx.dueDate).slice(8, 10), 10)
-                    : new Date(recurringTx.dueDate).getDate();
-                const targetDay = Math.min(sourceDay, lastDay);
-
-                const targetDate = setDate(targetMonthDate, targetDay);
-                formattedDueDate = format(targetDate, 'yyyy-MM-dd');
-            }
-            const toCreate: CreateIncomeInput = { name: recurringTx.name, amount: recurringTx.amount, date: baseDate, dueDate: formattedDueDate, isRecurring: false, paid: false, recurringTransactionId: recurringTx.id }
-            const createdIncome = await this.createIncome(toCreate);
-            incomes.push(createdIncome);
-        }
-        const validIncomes = incomes.filter(i => i.deletedAt === null);
-        const total = validIncomes.reduce((sum: number, i) => sum + Number(i.amount), 0);
-        const formattedIncomes = validIncomes.map((income) => ({
-            id: income.id,
-            name: income.name,
-            amount: income.amount,
-            date: income.date
-                ? format(new Date(income.date), "yyyy-MM-dd")
-                : null,
-            walletId: income.walletId,
-            walletName: income.walletName,
-            recurringTransactionId: income.recurringTransactionId,
-            dueDate: income.dueDate
-                ? format(new Date(income.dueDate), "yyyy-MM-dd")
-                : null,
-            paid: income.paid,
-            deletedAt: income.deletedAt,
-        }));
-        return { incomes: formattedIncomes, total };
+        const { items, total } = toListResponse<IncomeListItem>(incomes);
+        return { incomes: items, total };
     }
 
     async createIncome(data: CreateIncomeInput): Promise<Income> {

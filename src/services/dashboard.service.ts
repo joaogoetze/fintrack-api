@@ -1,7 +1,7 @@
 import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseService } from "./expense.service";
 import { IncomeService } from "./income.service";
-import { format } from "date-fns";
+import { formatDateOnly } from "../utils/dates";
 import { Summary, DueExpense, DueTransaction } from "../types/Dashboard";
 
 export class DashboardService {
@@ -36,8 +36,8 @@ export class DashboardService {
             ...e,
             type,
             amount: Number(e.amount),
-            date: e.date ? format(new Date(e.date), "yyyy-MM-dd") : null,
-            dueDate: e.dueDate ? format(new Date(e.dueDate), "yyyy-MM-dd") : null,
+            date: formatDateOnly(e.date),
+            dueDate: formatDateOnly(e.dueDate),
         });
         return [
             ...dueExpenses.map((e) => normalize(e, "expense")),

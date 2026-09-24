@@ -1,9 +1,9 @@
 import { ExpenseRepository } from "../repository/expense.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
-import { parse, endOfMonth, setDate, format } from "date-fns";
-import { CreateExpenseInput, UpdateExpenseInput, Expense, ExpensesResponse } from "../types/Expense";
+import { CreateExpenseInput, UpdateExpenseInput, Expense, ExpenseListItem, ExpensesResponse } from "../types/Expense";
 import { formatDateOnly, withDateOnly } from "../utils/dates";
+import { materializeRecurring, toListResponse } from "../utils/transactions";
 
 export class ExpenseService {
     constructor(
@@ -14,49 +14,15 @@ export class ExpenseService {
 
     async getExpenses(month: string): Promise<ExpensesResponse> {
         const expenses = await this.expenseRepository.getExpenses(month);
-        const baseDate = month + '-01';
-        const recurringTransactions = await this.recurringTransactionRepository.getRecurringTransactionByDate(month, "expense");
-        const transactionsToCreate = recurringTransactions.filter((recurringTx) => {
-            return !expenses.some(
-                (expense) => expense.recurringTransactionId === recurringTx.id
-            );
+        await materializeRecurring({
+            month,
+            type: "expense",
+            existing: expenses,
+            listRecurring: (m, t) => this.recurringTransactionRepository.getRecurringTransactionByDate(m, t),
+            create: (data) => this.createExpense(data),
         });
-        for (const recurringTx of transactionsToCreate) {
-            let formattedDueDate = "";
-            if (recurringTx.dueDate) {
-                const targetMonthDate = parse(month, 'yyyy-MM', new Date());
-                const lastDay = endOfMonth(targetMonthDate).getDate();
-                const sourceDay = typeof recurringTx.dueDate === "string"
-                    ? parseInt(String(recurringTx.dueDate).slice(8, 10), 10)
-                    : new Date(recurringTx.dueDate).getDate();
-                const targetDay = Math.min(sourceDay, lastDay);
-
-                const targetDate = setDate(targetMonthDate, targetDay);
-                formattedDueDate = format(targetDate, 'yyyy-MM-dd');
-            }
-            const toCreate: CreateExpenseInput = { name: recurringTx.name, amount: recurringTx.amount, date: baseDate, dueDate: formattedDueDate, isRecurring: false, paid: false }
-            const createdExpense = await this.createExpense(toCreate);
-            expenses.push(createdExpense);
-        }
-        const validExpenses = expenses.filter(e => e.deletedAt === null);
-        const total = validExpenses.reduce((sum: number, e) => sum + Number(e.amount), 0);
-        const formattedExpenses = validExpenses.map((expense) => ({
-            id: expense.id,
-            name: expense.name,
-            amount: expense.amount,
-            date: expense.date
-                ? format(new Date(expense.date), "yyyy-MM-dd")
-                : null,
-            walletId: expense.walletId,
-            walletName: expense.walletName,
-            recurringTransactionId: expense.recurringTransactionId,
-            dueDate: expense.dueDate
-                ? format(new Date(expense.dueDate), "yyyy-MM-dd")
-                : null,
-            paid: expense.paid,
-            deletedAt: expense.deletedAt,
-        }));
-        return { expenses: formattedExpenses, total };
+        const { items, total } = toListResponse<ExpenseListItem>(expenses);
+        return { expenses: items, total };
     }
 
     async createExpense(data: CreateExpenseInput): Promise<Expense> {
