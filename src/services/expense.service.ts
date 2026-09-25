@@ -26,9 +26,7 @@ export class ExpenseService {
     }
 
     async createExpense(data: CreateExpenseInput): Promise<Expense> {
-        const { isRecurring, name, amount, date, dueDate, paid, walletId } = data
-
-        let recurringTransactionId = null;
+        let { isRecurring, name, amount, date, dueDate, paid, walletId, recurringTransactionId } = data
 
         if (isRecurring) {
             recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion({ type: "expense", name, amount, startDate: date, dueDate });
