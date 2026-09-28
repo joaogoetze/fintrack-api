@@ -10,7 +10,7 @@ export class WalletRepository {
             SELECT *
             FROM wallets
             WHERE deleted_at IS NULL
-            ORDER BY id
+            ORDER BY id DESC
             `
         );
         return toCamelMany(rows);

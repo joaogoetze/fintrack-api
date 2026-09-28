@@ -2,7 +2,7 @@ import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseService } from "./expense.service";
 import { IncomeService } from "./income.service";
 import { formatDateOnly } from "../utils/dates";
-import { Summary, DueExpense, DueTransaction } from "../types/Dashboard";
+import { Summary, DueTransaction } from "../types/Dashboard";
 
 export class DashboardService {
     constructor(
@@ -25,27 +25,23 @@ export class DashboardService {
         return { totalIncome, totalExpenses, balance: totalIncome - totalExpenses };
     }
 
-    async getDueExpenses(month: string): Promise<DueTransaction[]> {
+    async getDueTransactions(month: string): Promise<DueTransaction[]> {
         await this.expenseService.getExpenses(month);
         await this.incomeService.getIncomes(month);
         const [dueExpenses, dueIncomes] = await Promise.all([
             this.dashboardRepository.getDueExpenses(month),
             this.dashboardRepository.getDueIncomes(month),
         ]);
-        const normalize = (e: DueExpense, type: DueTransaction["type"]): DueTransaction => ({
+        
+        const transactions = [...dueExpenses, ...dueIncomes];
+
+        const normalize = (e: DueTransaction): DueTransaction => ({
             ...e,
-            type,
             amount: Number(e.amount),
             date: formatDateOnly(e.date),
             dueDate: formatDateOnly(e.dueDate),
         });
-        return [
-            ...dueExpenses.map((e) => normalize(e, "expense")),
-            ...dueIncomes.map((e) => normalize(e, "income")),
-        ].sort((a, b) => {
-            if (!a.dueDate) return 1;
-            if (!b.dueDate) return -1;
-            return a.dueDate.localeCompare(b.dueDate);
-        });
+
+        return transactions.map((e) => normalize(e));
     }
 }

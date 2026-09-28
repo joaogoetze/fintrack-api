@@ -8,7 +8,7 @@ export const summarySchema = z.object({
 
 export type Summary = z.infer<typeof summarySchema>;
 
-export const dueExpenseSchema = z.object({
+export const dueTransactionSchema = z.object({
     id: z.number(),
     name: z.string(),
     amount: z.coerce.number(),
@@ -19,11 +19,6 @@ export const dueExpenseSchema = z.object({
     recurringTransactionId: z.number().nullable(),
     paid: z.boolean(),
     deletedAt: z.coerce.date().nullable().optional(),
-});
-
-export type DueExpense = z.infer<typeof dueExpenseSchema>;
-
-export const dueTransactionSchema = dueExpenseSchema.extend({
     type: z.enum(["income", "expense"]),
 });
 

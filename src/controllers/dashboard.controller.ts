@@ -14,12 +14,12 @@ export class DashboardController {
         return res.status(200).json(sumary);
     }
 
-    getDueExpenses = async (req: Request, res: Response): Promise<Response> => {
+    getDueTransactions = async (req: Request, res: Response): Promise<Response> => {
         const parsed = monthParamSchema.safeParse(req.params);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const dueExpenses = await this.dashboardService.getDueExpenses(parsed.data.month);
-        return res.status(200).json(dueExpenses);
+        const dueTransactions = await this.dashboardService.getDueTransactions(parsed.data.month);
+        return res.status(200).json(dueTransactions);
     }
 }

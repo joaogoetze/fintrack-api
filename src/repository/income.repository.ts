@@ -12,6 +12,7 @@ export class IncomeRepository {
             LEFT JOIN wallets w ON i.wallet_id = w.id
             WHERE i.date >= $1::date
             AND i.date < ($1::date + INTERVAL '1 month')
+            ORDER BY paid, id DESC
             `, [month + '-01']
         );
         return toCamelMany(rows);

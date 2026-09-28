@@ -22,4 +22,4 @@ const dashboardService = new DashboardService(dashboardRepository, expenseServic
 const dashboardController = new DashboardController(dashboardService)
 
 dashboardRoutes.get("/summary/:month", dashboardController.getSumary);
-dashboardRoutes.get("/dues/:month", dashboardController.getDueExpenses);
+dashboardRoutes.get("/dues/:month", dashboardController.getDueTransactions);
