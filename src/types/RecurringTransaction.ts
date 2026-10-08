@@ -23,7 +23,7 @@ export type CreateRecurringTransactionData = {
     type: string;
     name: string;
     amount: number;
-    startDate: string;
+    startDate?: string | null;
     dueDate?: string | null;
 };
 

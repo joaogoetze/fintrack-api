@@ -1,45 +1,42 @@
 import { z } from "zod";
 
-export const expenseSchema = z.object({
+const expenseSchema = z.object({
     id: z.number(),
     name: z.string(),
     amount: z.coerce.number(),
-    date: z.string().date(),
+    date: z.string().date().nullable(),
     walletId: z.number().nullable(),
-    walletName: z.string().optional(),
     recurringTransactionId: z.number().nullable(),
     dueDate: z.string().date().nullable(),
     paid: z.boolean(),
     deletedAt: z.coerce.date().nullable(),
 });
 
-export type Expense = z.infer<typeof expenseSchema>;
+const expenseItemSchema = expenseSchema
+    .extend({ walletName: z.string() })
 
-export type ExpenseListItem = Omit<Expense, "date"> & { date: string | null };
-
-export type ExpensesResponse = {
-    expenses: ExpenseListItem[];
-    total: number;
-};
-
-export const createExpenseSchema = expenseSchema
-    .omit({ id: true, deletedAt: true, walletName: true })
-    .partial({
-        walletId: true,
-        recurringTransactionId: true,
-        dueDate: true,
-    });
-
-export const createExpenseOptionsSchema = z.object({
-    isRecurring: z.boolean()
+const expensesResponseSchema = z.object({
+    expenses: z.array(expenseItemSchema),
+    total: z.number()
 });
 
-export const createExpenseRequest = createExpenseSchema.merge(createExpenseOptionsSchema)
-
-export type CreateExpenseInput = z.infer<typeof createExpenseRequest>;
+export const createExpenseSchema = expenseSchema
+    .omit({ 
+        id: true, 
+        deletedAt: true 
+    })
+    .partial({
+        date: true,
+        recurringTransactionId: true,
+        dueDate: true,
+        walletId: true
+    })
+    .extend({
+        isRecurring: z.boolean().optional()
+    });
 
 export const updateExpenseSchema = expenseSchema
-    .omit({ deletedAt: true, walletName: true })
+    .omit({ deletedAt: true })
     .partial({
         name: true,
         amount: true,
@@ -47,38 +44,25 @@ export const updateExpenseSchema = expenseSchema
         dueDate: true,
         walletId: true,
         recurringTransactionId: true,
-        paid: true,
     })
     .extend({
         updateRecurringTransaction: z.boolean().optional()
     });
 
-export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
+export const updateExpensePaidStatusSchema = expenseSchema
+    .pick({
+        id: true,
+        paid: true,
+        walletId: true,
+        amount: true,
+    })
+    .extend({
+        date: z.string().date().nullable().optional(),
+    });
 
-export type CreateExpenseData = {
-    name: string;
-    amount: number;
-    date: string;
-    dueDate?: string | null;
-    walletId?: number | null;
-    recurringTransactionId?: number | null;
-    paid?: boolean;
-};
-
-export type UpdateExpenseData = {
-    id: number;
-    name: string;
-    amount: number;
-    date: string;
-    dueDate: string | null;
-    walletId: number | null;
-    paid: boolean;
-};
-
-export const updateExpensePaidStatusSchema = z.object({
-    paid: z.boolean(),
-    walletId: z.number().nullable().optional(),
-    amount: z.coerce.number().optional()
-});
-
-export type UpdateExpensePaidStatusInput = z.infer<typeof updateExpensePaidStatusSchema>;
+export type Expense = z.infer<typeof expenseSchema>;
+export type ExpenseItem = z.infer<typeof expenseItemSchema>
+export type ExpensesResponse = z.infer<typeof expensesResponseSchema>
+export type CreateExpenseRequest = z.infer<typeof createExpenseSchema>;
+export type UpdateExpenseRequest = z.infer<typeof updateExpenseSchema>;
+export type UpdateExpensePaidStatusRequest = z.infer<typeof updateExpensePaidStatusSchema>;

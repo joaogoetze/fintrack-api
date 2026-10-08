@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { IncomeService } from "../services/income.service";
-import { createIncomeRequest, updateIncomeSchema, updateIncomePaidStatusSchema } from "../types/Income";
+import { createIncomeSchema, updateIncomeSchema, updateIncomePaidStatusSchema } from "../types/Income";
 import { idParamSchema, monthParamSchema } from "../types/Params";
 
 export class IncomeController {
@@ -12,11 +12,11 @@ export class IncomeController {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
         const incomes = await this.incomeService.getIncomes(parsed.data.month);
-        return res.status(200).json(incomes)
+        return res.status(200).json(incomes);
     }
 
     createIncome = async (req: Request, res: Response): Promise<Response> => {
-        const parsed = createIncomeRequest.safeParse(req.body);
+        const parsed = createIncomeSchema.safeParse(req.body);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
@@ -29,12 +29,11 @@ export class IncomeController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const parsed = updateIncomePaidStatusSchema.safeParse(req.body);
+        const parsed = updateIncomePaidStatusSchema.safeParse({ id: parsedParams.data.id, ...req.body });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const { paid, walletId, amount } = parsed.data;
-        const updatedIncome = await this.incomeService.updatePaidStatus(parsedParams.data.id, paid, walletId ?? undefined, amount);
+        const updatedIncome = await this.incomeService.updatePaidStatus(parsed.data);
         return res.status(200).json(updatedIncome);
     }
 

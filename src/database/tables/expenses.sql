@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS public.expenses
     due_date date,
     paid boolean DEFAULT true,
     deleted_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
     CONSTRAINT expenses_pkey PRIMARY KEY (id)
 )

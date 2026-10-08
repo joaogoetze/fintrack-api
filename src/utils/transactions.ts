@@ -5,7 +5,7 @@ import { RecurringTransaction } from "../types/RecurringTransaction";
 export type MaterializeInput = {
     name: string;
     amount: number;
-    date: string;
+    date?: string | null;
     dueDate: string;
     isRecurring: false;
     paid: boolean;
@@ -20,7 +20,7 @@ type ExistingTx = {
 /**
  * Materializa as transações recorrentes do mês: cria incomes/expenses
  * a partir das recorrentes sem vínculo, ajustando o dueDate para o
- * último dia do mês quando necessário. Não cria jobs nem gera meses futuros.
+ * último dia do mês quando necessário.
  */
 export async function materializeRecurring<T extends ExistingTx>(args: {
     month: string;
@@ -30,7 +30,6 @@ export async function materializeRecurring<T extends ExistingTx>(args: {
     create: (data: MaterializeInput) => Promise<T>;
 }): Promise<void> {
     const { month, type, existing, listRecurring, create } = args;
-    const baseDate = `${month}-01`;
 
     const recurring = await listRecurring(month, type);
     const missing = recurring.filter(
@@ -50,7 +49,7 @@ export async function materializeRecurring<T extends ExistingTx>(args: {
         const created = await create({
             name: recurringTx.name,
             amount: recurringTx.amount,
-            date: baseDate,
+            date: null,
             dueDate,
             isRecurring: false,
             paid: false,

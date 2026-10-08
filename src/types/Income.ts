@@ -1,46 +1,42 @@
 import { z } from "zod";
 
-export const incomeSchema = z.object({
+const incomeSchema = z.object({
     id: z.number(),
     name: z.string(),
     amount: z.coerce.number(),
-    date: z.string().date(),
-    dueDate: z.string().date().nullable(),
+    date: z.string().date().nullable(),
     walletId: z.number().nullable(),
-    walletName: z.string().optional(),
     recurringTransactionId: z.number().nullable(),
+    dueDate: z.string().date().nullable(),
     paid: z.boolean(),
     deletedAt: z.coerce.date().nullable(),
 });
 
-export type Income = z.infer<typeof incomeSchema>;
+const incomeItemSchema = incomeSchema
+    .extend({ walletName: z.string().optional() });
 
-export type IncomeListItem = Omit<Income, "date"> & { date: string | null };
-
-export type IncomesResponse = {
-    incomes: IncomeListItem[];
-    total: number;
-};
-
-export const createIncomeSchema = incomeSchema
-    .omit({ id: true, deletedAt: true, walletName: true })
-    .partial({
-        walletId: true,
-        recurringTransactionId: true,
-        dueDate: true,
-        paid: true
-    });
-
-export const createIncomeOptionsSchema = z.object({
-    isRecurring: z.boolean().optional()
+const incomesResponseSchema = z.object({
+    incomes: z.array(incomeItemSchema),
+    total: z.number()
 });
 
-export const createIncomeRequest = createIncomeSchema.merge(createIncomeOptionsSchema);
-
-export type CreateIncomeInput = z.infer<typeof createIncomeRequest>;
+export const createIncomeSchema = incomeSchema
+    .omit({ 
+        id: true, 
+        deletedAt: true 
+    })
+    .partial({
+        date: true,
+        recurringTransactionId: true,
+        dueDate: true,
+        walletId: true
+    })
+    .extend({
+        isRecurring: z.boolean().optional()
+    });
 
 export const updateIncomeSchema = incomeSchema
-    .omit({ deletedAt: true, walletName: true })
+    .omit({ deletedAt: true })
     .partial({
         name: true,
         amount: true,
@@ -48,38 +44,25 @@ export const updateIncomeSchema = incomeSchema
         dueDate: true,
         walletId: true,
         recurringTransactionId: true,
-        paid: true,
     })
     .extend({
         updateRecurringTransaction: z.boolean().optional()
     });
 
-export type UpdateIncomeInput = z.infer<typeof updateIncomeSchema>;
+export const updateIncomePaidStatusSchema = incomeSchema
+    .pick({
+        id: true,
+        paid: true,
+        walletId: true,
+        amount: true,
+    })
+    .extend({
+        date: z.string().date().nullable().optional(),
+    });
 
-export type CreateIncomeData = {
-    name: string;
-    amount: number;
-    date: string;
-    dueDate?: string | null;
-    walletId?: number | null;
-    recurringTransactionId?: number | null;
-    paid?: boolean;
-};
-
-export type UpdateIncomeData = {
-    id: number;
-    name: string;
-    amount: number;
-    date: string;
-    dueDate: string | null;
-    walletId: number | null;
-    paid: boolean;
-};
-
-export const updateIncomePaidStatusSchema = z.object({
-    paid: z.boolean(),
-    walletId: z.number().nullable().optional(),
-    amount: z.coerce.number().optional()
-});
-
-export type UpdateIncomePaidStatusInput = z.infer<typeof updateIncomePaidStatusSchema>;
+export type Income = z.infer<typeof incomeSchema>;
+export type IncomeItem = z.infer<typeof incomeItemSchema>;
+export type IncomesResponse = z.infer<typeof incomesResponseSchema>;
+export type CreateIncomeRequest = z.infer<typeof createIncomeSchema>;
+export type UpdateIncomeRequest = z.infer<typeof updateIncomeSchema>;
+export type UpdateIncomePaidStatusRequest = z.infer<typeof updateIncomePaidStatusSchema>;

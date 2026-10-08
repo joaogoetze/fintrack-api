@@ -1,17 +1,17 @@
 import 'dotenv/config';
 import { pool } from '../database';
 import { toCamel, toCamelMany } from '../utils/case';
-import { Expense, CreateExpenseData, UpdateExpenseData } from '../types/Expense';
+import { Expense, UpdateExpenseRequest, ExpenseItem, CreateExpenseRequest } from '../types/Expense';
 
 export class ExpenseRepository {
 
-    async getExpenses(month: string): Promise<Expense[]> {   
+    async getExpenses(month: string): Promise<ExpenseItem[]> {   
         const { rows } = await pool.query(`
             SELECT e.*, w.name as wallet_name
             FROM expenses e
             LEFT JOIN wallets w ON e.wallet_id = w.id
-            WHERE e.date >= $1::date
-            AND e.date < ($1::date + INTERVAL '1 month')
+            WHERE COALESCE(e.date, e.due_date, e.created_at::date, now()::date) >= $1::date
+            AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
             ORDER BY paid, id DESC
             `, [month + '-01']
         );
@@ -26,24 +26,24 @@ export class ExpenseRepository {
         return toCamel(rows[0]);
     }
 
-    async createExpense(data: CreateExpenseData): Promise<Expense> {
+    async createExpense(data: CreateExpenseRequest): Promise<Expense> {
         const { rows } = await pool.query(`
             INSERT INTO expenses
             (name, amount, date, due_date, wallet_id, recurring_transaction_id, paid)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
-            `, [data.name, data.amount, data.date, data.dueDate || null, data.walletId || null, data.recurringTransactionId || null, data.paid ?? true]
+            `, [data.name, data.amount, data.date || null, data.dueDate || null, data.walletId || null, data.recurringTransactionId || null, data.paid ?? true]
         );
         return toCamel(rows[0]);
     }
 
-    async updateExpense(data: UpdateExpenseData): Promise<Expense> {
+    async updateExpense(data: UpdateExpenseRequest): Promise<Expense> {
         const { rows } = await pool.query(`
             UPDATE expenses
-            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5, paid = $6
-            WHERE id = $7
+            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5
+            WHERE id = $6
             RETURNING *
-            `, [data.name, data.amount, data.date, data.dueDate, data.walletId, data.paid, data.id]
+            `, [data.name, data.amount, data.date || null, data.dueDate || null, data.walletId || null, data.id]
         );
         return toCamel(rows[0]);
     }
@@ -59,7 +59,17 @@ export class ExpenseRepository {
         return toCamel(rows[0]);
     }
 
-    async updatePaidStatus(id: number, paid: boolean, wallet_id?: number | null): Promise<Expense> {
+    async updatePaidStatus(id: number, paid: boolean, wallet_id?: number | null, date?: string | null): Promise<Expense> {
+        if (date !== undefined) {
+            const { rows } = await pool.query(`
+                UPDATE expenses
+                SET paid = $1, wallet_id = $2, date = $3
+                WHERE id = $4
+                RETURNING *
+                `, [paid, wallet_id ?? null, date || null, id]
+            );
+            return toCamel(rows[0]);
+        }
         const { rows } = await pool.query(`
             UPDATE expenses
             SET paid = $1, wallet_id = $2

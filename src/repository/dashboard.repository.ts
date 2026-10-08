@@ -10,16 +10,14 @@ export class DashboardRepository {
             SELECT
                 (SELECT COALESCE(SUM(amount), 0)
                 FROM expenses
-                WHERE expenses.date >= $1::date
-                AND date < ($1::date + INTERVAL '1 month')
-                AND due_date IS NOT NULL
+                WHERE COALESCE(expenses.date, expenses.due_date, expenses.created_at::date, now()::date) >= $1::date
+                AND COALESCE(expenses.date, expenses.due_date, expenses.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
                 AND expenses.deleted_at IS NULL
                 ) AS total_expenses,
                 (SELECT COALESCE(SUM(amount), 0)
                 FROM incomes
-                WHERE incomes.date >= $1::date
-                AND date < ($1::date + INTERVAL '1 month')
-                AND due_date IS NOT NULL
+                WHERE COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) >= $1::date
+                AND COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
                 AND incomes.deleted_at IS NULL
                 ) AS total_income;
             `, [month + '-01']
