@@ -9,6 +9,13 @@ const walletSchema = z.object({
 
 export type Wallet = z.infer<typeof walletSchema>;
 
+const walletsResponseSchema = z.object({
+    wallets: z.array(walletSchema),
+    total: z.number()
+});
+
+export type WalletsResponse = z.infer<typeof walletsResponseSchema>
+
 export type WalletOperation = "income" | "expense";
 
 export const createWalletRequest = walletSchema.omit({ id: true, deletedAt: true });
