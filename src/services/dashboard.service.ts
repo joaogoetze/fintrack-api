@@ -35,8 +35,11 @@ export class DashboardService {
         
         const transactions = [...dueExpenses, ...dueIncomes];
 
-        //ordenar por data
         transactions.sort(function (a, b) {
+            if (a.paid !== b.paid) {
+                return a.paid ? 1 : -1;
+            }
+            
             if(a.dueDate && b.dueDate) {
                 if (a.dueDate > b.dueDate) {
                     return 1;
@@ -45,12 +48,20 @@ export class DashboardService {
                     return -1;
                 }
             }
-            
             return 0
         });
 
-        
-        
+        transactions.sort(function (a, b) {
+            if(a.dueDate && b.dueDate) {
+                if (a.paid) {
+                    return 1;
+                }
+                // if (a.dueDate < b.dueDate) {
+                //     return -1;
+                // }
+            }
+            return 0
+        });
 
         const normalize = (e: DueTransaction): DueTransaction => ({
             ...e,
