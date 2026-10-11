@@ -5,7 +5,7 @@ import { Summary, DueTransaction } from '../types/Dashboard';
 
 export class DashboardRepository {
 
-    async getSumary(month: string): Promise<Summary> {
+    async getSumary(month: string): Promise<any> {
         const { rows } = await pool.query(`
             SELECT
                 (SELECT COALESCE(SUM(amount), 0)
@@ -15,11 +15,39 @@ export class DashboardRepository {
                 AND expenses.deleted_at IS NULL
                 ) AS total_expenses,
                 (SELECT COALESCE(SUM(amount), 0)
+                FROM expenses
+                WHERE COALESCE(expenses.date, expenses.due_date, expenses.created_at::date, now()::date) >= $1::date
+                AND COALESCE(expenses.date, expenses.due_date, expenses.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
+                AND expenses.paid = true
+                AND expenses.deleted_at IS NULL
+                ) AS paid_expenses,
+                (SELECT COALESCE(SUM(amount), 0)
+                FROM expenses
+                WHERE COALESCE(expenses.date, expenses.due_date, expenses.created_at::date, now()::date) >= $1::date
+                AND COALESCE(expenses.date, expenses.due_date, expenses.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
+                AND expenses.paid = false
+                AND expenses.deleted_at IS NULL
+                ) AS unpaid_expenses,
+                (SELECT COALESCE(SUM(amount), 0)
                 FROM incomes
                 WHERE COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) >= $1::date
                 AND COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
                 AND incomes.deleted_at IS NULL
-                ) AS total_income;
+                ) AS total_income,
+                (SELECT COALESCE(SUM(amount), 0)
+                FROM incomes
+                WHERE COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) >= $1::date
+                AND COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
+                AND incomes.paid = true
+                AND incomes.deleted_at IS NULL
+                ) AS paid_income,
+                (SELECT COALESCE(SUM(amount), 0)
+                FROM incomes
+                WHERE COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) >= $1::date
+                AND COALESCE(incomes.date, incomes.due_date, incomes.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
+                AND incomes.paid = false
+                AND incomes.deleted_at IS NULL
+                ) AS unpaid_income;
             `, [month + '-01']
         );
         return toCamel(rows[0]);

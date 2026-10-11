@@ -17,7 +17,9 @@ const incomeItemSchema = incomeSchema
 
 const incomesResponseSchema = z.object({
     incomes: z.array(incomeItemSchema),
-    total: z.number()
+    total: z.number(),
+    totalPaid: z.number().default(0),
+    totalUnpaid: z.number().default(0),
 });
 
 export const createIncomeSchema = incomeSchema

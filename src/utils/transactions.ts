@@ -64,9 +64,11 @@ export async function materializeRecurring<T extends ExistingTx>(args: {
  * calcula o total e formata date/dueDate como 'yyyy-MM-dd' sem conversão
  * de timezone (formatDateOnly, nunca `format(new Date(str))`).
  */
-export function toListResponse<T>(rows: Record<string, any>[]): { items: T[]; total: number } {
+export function toListResponse<T>(rows: Record<string, any>[]): { items: T[]; total: number; totalPaid: number; totalUnpaid: number } {
     const valid = rows.filter((row) => row.deletedAt === null);
     const total = valid.reduce((sum: number, row) => sum + Number(row.amount), 0);
+    const totalPaid = valid.filter((row) => Boolean(row.paid)).reduce((sum: number, row) => sum + Number(row.amount), 0);
+    const totalUnpaid = valid.filter((row) => !row.paid).reduce((sum: number, row) => sum + Number(row.amount), 0);
     const items = valid.map((row) => ({
         id: row.id,
         name: row.name,
@@ -79,5 +81,5 @@ export function toListResponse<T>(rows: Record<string, any>[]): { items: T[]; to
         paid: row.paid,
         deletedAt: row.deletedAt,
     }));
-    return { items: items as T[], total };
+    return { items: items as T[], total, totalPaid, totalUnpaid };
 }

@@ -17,7 +17,9 @@ const expenseItemSchema = expenseSchema
 
 const expensesResponseSchema = z.object({
     expenses: z.array(expenseItemSchema),
-    total: z.number()
+    total: z.number(),
+    totalPaid: z.number().default(0),
+    totalUnpaid: z.number().default(0),
 });
 
 export const createExpenseSchema = expenseSchema

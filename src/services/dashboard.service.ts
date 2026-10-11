@@ -21,8 +21,23 @@ export class DashboardService {
         }
 
         const totalIncome = Number(summary.totalIncome);
+        const paidIncome = Number(summary.paidIncome || 0);
+        const unpaidIncome = Number(summary.unpaidIncome || 0);
+
         const totalExpenses = Number(summary.totalExpenses);
-        return { totalIncome, totalExpenses, balance: totalIncome - totalExpenses };
+        const paidExpenses = Number(summary.paidExpenses || 0);
+        const unpaidExpenses = Number(summary.unpaidExpenses || 0);
+
+        return { 
+            totalIncome, 
+            paidIncome,
+            unpaidIncome,
+            totalExpenses, 
+            paidExpenses,
+            unpaidExpenses,
+            balance: paidIncome - paidExpenses,
+            projectedBalance: totalIncome - totalExpenses
+        };
     }
 
     async getDueTransactions(month: string): Promise<DueTransaction[]> {

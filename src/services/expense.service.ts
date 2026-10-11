@@ -14,6 +14,7 @@ export class ExpenseService {
 
     async getExpenses(month: string): Promise<ExpensesResponse> {
         const expenses = await this.expenseRepository.getExpenses(month);
+        
         await materializeRecurring({
             month,
             type: "expense",
@@ -21,8 +22,8 @@ export class ExpenseService {
             listRecurring: (m, t) => this.recurringTransactionRepository.getRecurringTransactionByDate(m, t),
             create: (data) => this.createExpense(data),
         });
-        const { items, total } = toListResponse<ExpenseItem>(expenses);
-        return { expenses: items, total };
+        const { items, total, totalPaid, totalUnpaid } = toListResponse<ExpenseItem>(expenses);
+        return { expenses: items, total, totalPaid, totalUnpaid };
     }
 
     async createExpense(data: CreateExpenseRequest): Promise<Expense> {

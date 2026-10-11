@@ -2,8 +2,13 @@ import { z } from "zod";
 
 export const summarySchema = z.object({
     totalIncome: z.coerce.number(),
+    paidIncome: z.coerce.number().default(0),
+    unpaidIncome: z.coerce.number().default(0),
     totalExpenses: z.coerce.number(),
+    paidExpenses: z.coerce.number().default(0),
+    unpaidExpenses: z.coerce.number().default(0),
     balance: z.coerce.number(),
+    projectedBalance: z.coerce.number().default(0),
 });
 
 export type Summary = z.infer<typeof summarySchema>;

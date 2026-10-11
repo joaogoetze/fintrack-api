@@ -21,8 +21,8 @@ export class IncomeService {
             listRecurring: (m, t) => this.recurringTransactionRepository.getRecurringTransactionByDate(m, t),
             create: (data) => this.createIncome(data),
         });
-        const { items, total } = toListResponse<IncomeItem>(incomes);
-        return { incomes: items, total };
+        const { items, total, totalPaid, totalUnpaid } = toListResponse<IncomeItem>(incomes);
+        return { incomes: items, total, totalPaid, totalUnpaid };
     }
 
     async createIncome(data: CreateIncomeRequest): Promise<Income> {
