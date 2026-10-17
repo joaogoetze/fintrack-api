@@ -11,12 +11,15 @@ export class ExpenseController {
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const expenses = await this.expensesService.getExpenses(parsed.data.month)
+        const workspaceId = req.workspaceId!;
+        const expenses = await this.expensesService.getExpenses(parsed.data.month, workspaceId);
         return res.status(200).json(expenses);
     }
 
     createExepense = async (req: Request, res: Response): Promise<Response> => {
-        const parsed = createExpenseSchema.safeParse(req.body);
+        const workspaceId = req.workspaceId!;
+        const createdBy = req.user?.id;
+        const parsed = createExpenseSchema.safeParse({ ...req.body, workspaceId, createdBy });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
@@ -30,11 +33,12 @@ export class ExpenseController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const parsed = updateExpenseSchema.safeParse({ id: parsedParams.data.id, ...req.body });
+        const workspaceId = req.workspaceId!;
+        const parsed = updateExpenseSchema.safeParse({ id: parsedParams.data.id, ...req.body, workspaceId });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const updatedExpense = await this.expensesService.updateExpense(parsed.data);
+        const updatedExpense = await this.expensesService.updateExpense(parsed.data, workspaceId);
         return res.status(200).json(updatedExpense);
     }
 
@@ -43,7 +47,8 @@ export class ExpenseController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const deleted = await this.expensesService.deleteExpense(parsedParams.data.id);
+        const workspaceId = req.workspaceId!;
+        const deleted = await this.expensesService.deleteExpense(parsedParams.data.id, workspaceId);
         return res.status(200).json(deleted);
     }
 
@@ -52,11 +57,12 @@ export class ExpenseController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const parsed = updateExpensePaidStatusSchema.safeParse({ id: parsedParams.data.id, ...req.body});
+        const workspaceId = req.workspaceId!;
+        const parsed = updateExpensePaidStatusSchema.safeParse({ id: parsedParams.data.id, ...req.body });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const updatedExpense = await this.expensesService.updatePaidStatus(parsed.data);
+        const updatedExpense = await this.expensesService.updatePaidStatus(parsed.data, workspaceId);
         return res.status(200).json(updatedExpense);
     }
 }

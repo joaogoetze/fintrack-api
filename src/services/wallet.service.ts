@@ -1,21 +1,21 @@
 import { WalletRepository } from "../repository/wallet.repository";
-import { CreateWalletInput, UpdateWalletInput, Wallet, WalletsResponse } from "../types/Wallet";
+import { CreateWalletRequest, UpdateWalletRequest, Wallet, WalletsResponse } from "../types/Wallet";
 
 export class WalletService {
     constructor(private walletRepository: WalletRepository) {}
 
-    async getWallets(): Promise<WalletsResponse> {
-        const wallets = await this.walletRepository.getWallets();
+    async getWallets(workspaceId: number): Promise<WalletsResponse> {
+        const wallets = await this.walletRepository.getWallets(workspaceId);
         const total = wallets.reduce((sum: number, row) => sum + Number(row.balance), 0);
-        return {wallets, total};
+        return { wallets, total };
     }
 
-    async createWallet(data: CreateWalletInput): Promise<Wallet> {
-        return await this.walletRepository.createWallet(data.name, data.balance);
+    async createWallet(data: CreateWalletRequest): Promise<Wallet> {
+        return await this.walletRepository.createWallet(data);
     }
 
-    async updateWallet(id: number, data: UpdateWalletInput): Promise<Wallet> {
-        return await this.walletRepository.updateWallet(id, data.name, data.balance);
+    async updateWallet(data: UpdateWalletRequest): Promise<Wallet> {
+        return await this.walletRepository.updateWallet(data);
     }
 
     async deleteWallet(id: number): Promise<Wallet> {

@@ -20,9 +20,11 @@ export const dueTransactionSchema = z.object({
     date: z.string().date().nullable(),
     dueDate: z.string().date().nullable(),
     walletId: z.number().nullable(),
-    walletName: z.string().optional(),
+    walletName: z.string().nullable().optional(),
     recurringTransactionId: z.number().nullable(),
     paid: z.boolean(),
+    workspaceId: z.coerce.number().optional(),
+    createdBy: z.number().nullable().optional(),
     deletedAt: z.coerce.date().nullable().optional(),
     type: z.enum(["income", "expense"]),
 });

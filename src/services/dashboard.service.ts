@@ -11,13 +11,13 @@ export class DashboardService {
         private incomeService: IncomeService
     ) { }
 
-    async getSumary(month: string): Promise<Summary> {
-        let summary = await this.dashboardRepository.getSumary(month);
+    async getSumary(month: string, workspaceId: number): Promise<Summary> {
+        let summary = await this.dashboardRepository.getSumary(month, workspaceId);
 
-        if (Number(summary.totalExpenses) == 0 && Number(summary.totalIncome) == 0) {
-            await this.expenseService.getExpenses(month);
-            await this.incomeService.getIncomes(month);
-            summary = await this.dashboardRepository.getSumary(month);
+        if (Number(summary.totalExpenses) === 0 && Number(summary.totalIncome) === 0) {
+            await this.expenseService.getExpenses(month, workspaceId);
+            await this.incomeService.getIncomes(month, workspaceId);
+            summary = await this.dashboardRepository.getSumary(month, workspaceId);
         }
 
         const totalIncome = Number(summary.totalIncome);
@@ -40,12 +40,12 @@ export class DashboardService {
         };
     }
 
-    async getDueTransactions(month: string): Promise<DueTransaction[]> {
-        await this.expenseService.getExpenses(month);
-        await this.incomeService.getIncomes(month);
+    async getDueTransactions(month: string, workspaceId: number): Promise<DueTransaction[]> {
+        await this.expenseService.getExpenses(month, workspaceId);
+        await this.incomeService.getIncomes(month, workspaceId);
         const [dueExpenses, dueIncomes] = await Promise.all([
-            this.dashboardRepository.getDueExpenses(month),
-            this.dashboardRepository.getDueIncomes(month),
+            this.dashboardRepository.getDueExpenses(month, workspaceId),
+            this.dashboardRepository.getDueIncomes(month, workspaceId),
         ]);
         
         const transactions = [...dueExpenses, ...dueIncomes];
@@ -63,7 +63,7 @@ export class DashboardService {
                     return -1;
                 }
             }
-            return 0
+            return 0;
         });
 
         transactions.sort(function (a, b) {
@@ -71,11 +71,8 @@ export class DashboardService {
                 if (a.paid) {
                     return 1;
                 }
-                // if (a.dueDate < b.dueDate) {
-                //     return -1;
-                // }
             }
-            return 0
+            return 0;
         });
 
         const normalize = (e: DueTransaction): DueTransaction => ({

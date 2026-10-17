@@ -9,11 +9,13 @@ const expenseSchema = z.object({
     recurringTransactionId: z.number().nullable(),
     dueDate: z.string().date().nullable(),
     paid: z.boolean(),
+    workspaceId: z.coerce.number(),
+    createdBy: z.number().nullable().optional(),
     deletedAt: z.coerce.date().nullable(),
 });
 
 const expenseItemSchema = expenseSchema
-    .extend({ walletName: z.string() })
+    .extend({ walletName: z.string().nullable().optional() });
 
 const expensesResponseSchema = z.object({
     expenses: z.array(expenseItemSchema),
@@ -31,10 +33,12 @@ export const createExpenseSchema = expenseSchema
         date: true,
         recurringTransactionId: true,
         dueDate: true,
-        walletId: true
+        walletId: true,
+        createdBy: true,
     })
     .extend({
-        isRecurring: z.boolean().optional()
+        isRecurring: z.boolean().optional(),
+        paid: z.boolean().optional()
     });
 
 export const updateExpenseSchema = expenseSchema
@@ -46,10 +50,15 @@ export const updateExpenseSchema = expenseSchema
         dueDate: true,
         walletId: true,
         recurringTransactionId: true,
+        workspaceId: true,
+        createdBy: true,
+        paid: true,
     })
     .extend({
+        id: z.number(),
         updateRecurringTransaction: z.boolean().optional()
     });
+
 
 export const updateExpensePaidStatusSchema = expenseSchema
     .pick({
@@ -63,8 +72,8 @@ export const updateExpensePaidStatusSchema = expenseSchema
     });
 
 export type Expense = z.infer<typeof expenseSchema>;
-export type ExpenseItem = z.infer<typeof expenseItemSchema>
-export type ExpensesResponse = z.infer<typeof expensesResponseSchema>
+export type ExpenseItem = z.infer<typeof expenseItemSchema>;
+export type ExpensesResponse = z.infer<typeof expensesResponseSchema>;
 export type CreateExpenseRequest = z.infer<typeof createExpenseSchema>;
 export type UpdateExpenseRequest = z.infer<typeof updateExpenseSchema>;
 export type UpdateExpensePaidStatusRequest = z.infer<typeof updateExpensePaidStatusSchema>;

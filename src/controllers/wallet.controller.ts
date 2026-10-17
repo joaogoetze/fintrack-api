@@ -1,18 +1,20 @@
 import { Request, Response } from "express";
 import { WalletService } from "../services/wallet.service";
-import { createWalletRequest, updateWalletRequest } from "../types/Wallet";
+import { createWalletSchema, updateWalletSchema } from "../types/Wallet";
 import { idParamSchema } from "../types/Params";
 
 export class WalletController {
     constructor(private walletService: WalletService) {}
 
     getWallets = async (req: Request, res: Response): Promise<Response> => {
-        const wallets = await this.walletService.getWallets();
+        const workspaceId = req.workspaceId!;
+        const wallets = await this.walletService.getWallets(workspaceId);
         return res.status(200).json(wallets)
     }
 
     createWallet = async (req: Request, res: Response): Promise<Response> => {
-        const parsed = createWalletRequest.safeParse(req.body);
+        const workspaceId = req.workspaceId!;
+        const parsed = createWalletSchema.safeParse({ ...req.body, workspaceId });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
@@ -25,11 +27,12 @@ export class WalletController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const parsed = updateWalletRequest.safeParse(req.body);
+        const workspaceId = req.workspaceId!;
+        const parsed = updateWalletSchema.safeParse({ id: parsedParams.data.id, ...req.body, workspaceId });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const updated = await this.walletService.updateWallet(parsedParams.data.id, parsed.data);
+        const updated = await this.walletService.updateWallet(parsed.data);
         return res.status(200).json(updated);
     }
 

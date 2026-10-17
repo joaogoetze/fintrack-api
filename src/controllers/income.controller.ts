@@ -11,12 +11,15 @@ export class IncomeController {
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const incomes = await this.incomeService.getIncomes(parsed.data.month);
+        const workspaceId = req.workspaceId!;
+        const incomes = await this.incomeService.getIncomes(parsed.data.month, workspaceId);
         return res.status(200).json(incomes);
     }
 
     createIncome = async (req: Request, res: Response): Promise<Response> => {
-        const parsed = createIncomeSchema.safeParse(req.body);
+        const workspaceId = req.workspaceId!;
+        const createdBy = req.user?.id;
+        const parsed = createIncomeSchema.safeParse({ ...req.body, workspaceId, createdBy });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
@@ -29,11 +32,12 @@ export class IncomeController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
+        const workspaceId = req.workspaceId!;
         const parsed = updateIncomePaidStatusSchema.safeParse({ id: parsedParams.data.id, ...req.body });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const updatedIncome = await this.incomeService.updatePaidStatus(parsed.data);
+        const updatedIncome = await this.incomeService.updatePaidStatus(parsed.data, workspaceId);
         return res.status(200).json(updatedIncome);
     }
 
@@ -42,7 +46,8 @@ export class IncomeController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const deleted = await this.incomeService.deleteIncome(parsedParams.data.id);
+        const workspaceId = req.workspaceId!;
+        const deleted = await this.incomeService.deleteIncome(parsedParams.data.id, workspaceId);
         return res.status(200).json(deleted);
     }
 
@@ -51,11 +56,12 @@ export class IncomeController {
         if (!parsedParams.success) {
             return res.status(400).json({ errors: parsedParams.error.flatten() });
         }
-        const parsed = updateIncomeSchema.safeParse({ id: parsedParams.data.id, ...req.body });
+        const workspaceId = req.workspaceId!;
+        const parsed = updateIncomeSchema.safeParse({ id: parsedParams.data.id, ...req.body, workspaceId });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const updatedIncome = await this.incomeService.updateIncome(parsed.data);
+        const updatedIncome = await this.incomeService.updateIncome(parsed.data, workspaceId);
         return res.status(200).json(updatedIncome);
     }
 }

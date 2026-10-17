@@ -10,7 +10,8 @@ export class DashboardController {
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const sumary = await this.dashboardService.getSumary(parsed.data.month);
+        const workspaceId = req.workspaceId!;
+        const sumary = await this.dashboardService.getSumary(parsed.data.month, workspaceId);
         return res.status(200).json(sumary);
     }
 
@@ -19,7 +20,8 @@ export class DashboardController {
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
-        const dueTransactions = await this.dashboardService.getDueTransactions(parsed.data.month);
+        const workspaceId = req.workspaceId!;
+        const dueTransactions = await this.dashboardService.getDueTransactions(parsed.data.month, workspaceId);
         return res.status(200).json(dueTransactions);
     }
 }

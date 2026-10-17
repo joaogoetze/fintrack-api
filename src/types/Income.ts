@@ -9,11 +9,13 @@ const incomeSchema = z.object({
     recurringTransactionId: z.number().nullable(),
     dueDate: z.string().date().nullable(),
     paid: z.boolean(),
+    workspaceId: z.coerce.number(),
+    createdBy: z.number().nullable().optional(),
     deletedAt: z.coerce.date().nullable(),
 });
 
 const incomeItemSchema = incomeSchema
-    .extend({ walletName: z.string().optional() });
+    .extend({ walletName: z.string().nullable().optional() });
 
 const incomesResponseSchema = z.object({
     incomes: z.array(incomeItemSchema),
@@ -31,10 +33,12 @@ export const createIncomeSchema = incomeSchema
         date: true,
         recurringTransactionId: true,
         dueDate: true,
-        walletId: true
+        walletId: true,
+        createdBy: true,
     })
     .extend({
-        isRecurring: z.boolean().optional()
+        isRecurring: z.boolean().optional(),
+        paid: z.boolean().optional()
     });
 
 export const updateIncomeSchema = incomeSchema
@@ -46,10 +50,15 @@ export const updateIncomeSchema = incomeSchema
         dueDate: true,
         walletId: true,
         recurringTransactionId: true,
+        workspaceId: true,
+        createdBy: true,
+        paid: true,
     })
     .extend({
+        id: z.number(),
         updateRecurringTransaction: z.boolean().optional()
     });
+
 
 export const updateIncomePaidStatusSchema = incomeSchema
     .pick({

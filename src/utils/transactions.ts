@@ -9,6 +9,7 @@ export type MaterializeInput = {
     dueDate: string;
     isRecurring: false;
     paid: boolean;
+    workspaceId: number;
     walletId?: number | null;
     recurringTransactionId?: number | null;
 };
@@ -24,14 +25,15 @@ type ExistingTx = {
  */
 export async function materializeRecurring<T extends ExistingTx>(args: {
     month: string;
-    type: string;
+    type: "income" | "expense";
+    workspaceId: number;
     existing: T[];
-    listRecurring: (month: string, type: string) => Promise<RecurringTransaction[]>;
+    listRecurring: (month: string, type: "income" | "expense", workspaceId: number) => Promise<RecurringTransaction[]>;
     create: (data: MaterializeInput) => Promise<T>;
 }): Promise<void> {
-    const { month, type, existing, listRecurring, create } = args;
+    const { month, type, workspaceId, existing, listRecurring, create } = args;
 
-    const recurring = await listRecurring(month, type);
+    const recurring = await listRecurring(month, type, workspaceId);
     const missing = recurring.filter(
         (recurringTx) => !existing.some((item) => item.recurringTransactionId === recurringTx.id)
     );
@@ -53,6 +55,7 @@ export async function materializeRecurring<T extends ExistingTx>(args: {
             dueDate,
             isRecurring: false,
             paid: false,
+            workspaceId,
             recurringTransactionId: recurringTx.id,
         });
         existing.push(created);
@@ -79,6 +82,8 @@ export function toListResponse<T>(rows: Record<string, any>[]): { items: T[]; to
         recurringTransactionId: row.recurringTransactionId,
         dueDate: formatDateOnly(row.dueDate),
         paid: row.paid,
+        workspaceId: row.workspaceId,
+        createdBy: row.createdBy,
         deletedAt: row.deletedAt,
     }));
     return { items: items as T[], total, totalPaid, totalUnpaid };

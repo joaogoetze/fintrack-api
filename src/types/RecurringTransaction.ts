@@ -2,34 +2,22 @@ import { z } from "zod";
 
 const recurringTransactionSchema = z.object({
     id: z.number(),
-    type: z.string(),
+    workspaceId: z.coerce.number(),
+    type: z.enum(["income", "expense"]),
     name: z.string(),
     amount: z.coerce.number(),
     startDate: z.string().date(),
     dueDate: z.string().date().nullable(),
 });
 
+export const createRecurringTransactionSchema = recurringTransactionSchema
+    .omit({ id: true })
+    .partial({ dueDate: true });
+
+export const updateRecurringTransactionSchema = recurringTransactionSchema
+    .omit({ type: true, startDate: true })
+    .partial({ workspaceId: true });
+
 export type RecurringTransaction = z.infer<typeof recurringTransactionSchema>;
-
-export const createRecurringTransactionRequest = recurringTransactionSchema.omit({ id: true });
-
-export type CreateRecurringTransactionInput = z.infer<typeof createRecurringTransactionRequest>;
-
-export const updateRecurringTransactionRequest = recurringTransactionSchema.omit({ type: true, startDate: true });
-
-export type UpdateRecurringTransactionInput = z.infer<typeof updateRecurringTransactionRequest>;
-
-export type CreateRecurringTransactionData = {
-    type: string;
-    name: string;
-    amount: number;
-    startDate?: string | null;
-    dueDate?: string | null;
-};
-
-export type UpdateRecurringTransactionData = {
-    id: number;
-    name: string;
-    amount: number;
-    dueDate: string | null;
-};
+export type CreateRecurringTransactionInput = z.infer<typeof createRecurringTransactionSchema>;
+export type UpdateRecurringTransactionInput = z.infer<typeof updateRecurringTransactionSchema>;
