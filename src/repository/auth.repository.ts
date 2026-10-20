@@ -37,16 +37,16 @@ export class AuthRepository {
         return toCamel(rows[0]);
     }
 
-    async createWorkspace(name: string, ownerId: number, isPersonal: boolean = false): Promise<Workspace> {
+    async createWorkspace(name: string, ownerId: number): Promise<Workspace> {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
             const workspaceRes = await client.query(
-                `INSERT INTO workspaces (name, owner_id, is_personal)
-                 VALUES ($1, $2, $3)
+                `INSERT INTO workspaces (name, owner_id)
+                 VALUES ($1, $2)
                  RETURNING *`,
-                [name, ownerId, isPersonal]
+                [name, ownerId]
             );
 
             const workspace = toCamel<Workspace>(workspaceRes.rows[0]);
@@ -73,11 +73,12 @@ export class AuthRepository {
              FROM workspaces w
              INNER JOIN workspace_members wm ON wm.workspace_id = w.id
              WHERE wm.user_id = $1
-             ORDER BY w.is_personal DESC, w.id ASC`,
+             ORDER BY w.id ASC`,
             [userId]
         );
         return toCamelMany(rows);
     }
+
 
     async isUserInWorkspace(userId: number, workspaceId: number): Promise<boolean> {
         const { rows } = await pool.query(
@@ -154,13 +155,8 @@ export class AuthRepository {
                 [workspaceId, userId]
             );
 
-            // Se o workspace era pessoal, ao adicionar membros ele vira compartilhado
-            await client.query(
-                `UPDATE workspaces SET is_personal = false WHERE id = $1`,
-                [workspaceId]
-            );
-
             await client.query('COMMIT');
+
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;

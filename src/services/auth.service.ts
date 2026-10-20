@@ -39,18 +39,11 @@ export class AuthService {
 
         if (!user) {
             user = await this.authRepository.createUser(googleId, email, name, avatarUrl);
-            // Cria o workspace pessoal padrão para o usuário recém-criado
-            await this.authRepository.createWorkspace(`Pessoal (${name})`, user.id, true);
         }
 
-        // Busca os workspaces aos quais o usuário pertence
-        let workspaces = await this.authRepository.getUserWorkspaces(user.id);
+        // Busca os workspaces aos quais o usuário pertence (pode vir vazio caso seja a primeira vez)
+        const workspaces = await this.authRepository.getUserWorkspaces(user.id);
 
-        // Se por algum motivo o usuário não tiver nenhum workspace, cria um pessoal
-        if (workspaces.length === 0) {
-            const personal = await this.authRepository.createWorkspace(`Pessoal (${name})`, user.id, true);
-            workspaces = [personal];
-        }
 
         // Gera token JWT de sessão da nossa aplicação
         const token = jwt.sign(
@@ -77,8 +70,9 @@ export class AuthService {
     }
 
     async createWorkspace(name: string, userId: number): Promise<Workspace> {
-        return this.authRepository.createWorkspace(name, userId, false);
+        return this.authRepository.createWorkspace(name, userId);
     }
+
 
     async inviteUser(workspaceId: number, inviterId: number, inviterEmail: string, emailToInvite: string) {
         const cleanEmail = emailToInvite.toLowerCase().trim();
