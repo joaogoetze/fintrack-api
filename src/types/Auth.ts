@@ -12,7 +12,6 @@ export const userSchema = z.object({
 export const workspaceSchema = z.object({
     id: z.number(),
     name: z.string(),
-    isPersonal: z.boolean().optional(),
     ownerId: z.number(),
     role: z.enum(["owner", "admin", "member"]).optional(),
     createdAt: z.coerce.date().optional(),
