@@ -83,7 +83,6 @@ export function toListResponse<T>(rows: Record<string, any>[]): { items: T[]; to
         dueDate: formatDateOnly(row.dueDate),
         paid: row.paid,
         workspaceId: row.workspaceId,
-        createdBy: row.createdBy,
         deletedAt: row.deletedAt,
     }));
     return { items: items as T[], total, totalPaid, totalUnpaid };

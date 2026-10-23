@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS public.recurring_transactions
     amount numeric(12,2),
     start_date date,
     due_date date,
+    workspace_id integer,
     CONSTRAINT recurring_transactions_pkey PRIMARY KEY (id)
-)
+);

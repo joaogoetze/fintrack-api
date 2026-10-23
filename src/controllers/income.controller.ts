@@ -18,8 +18,7 @@ export class IncomeController {
 
     createIncome = async (req: Request, res: Response): Promise<Response> => {
         const workspaceId = req.workspaceId!;
-        const createdBy = req.user?.id;
-        const parsed = createIncomeSchema.safeParse({ ...req.body, workspaceId, createdBy });
+        const parsed = createIncomeSchema.safeParse({ ...req.body, workspaceId });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }

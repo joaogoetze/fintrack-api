@@ -18,8 +18,7 @@ export class ExpenseController {
 
     createExepense = async (req: Request, res: Response): Promise<Response> => {
         const workspaceId = req.workspaceId!;
-        const createdBy = req.user?.id;
-        const parsed = createExpenseSchema.safeParse({ ...req.body, workspaceId, createdBy });
+        const parsed = createExpenseSchema.safeParse({ ...req.body, workspaceId });
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }

@@ -24,7 +24,6 @@ export const dueTransactionSchema = z.object({
     recurringTransactionId: z.number().nullable(),
     paid: z.boolean(),
     workspaceId: z.coerce.number().optional(),
-    createdBy: z.number().nullable().optional(),
     deletedAt: z.coerce.date().nullable().optional(),
     type: z.enum(["income", "expense"]),
 });

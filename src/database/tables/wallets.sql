@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS public.wallets
     name character varying COLLATE pg_catalog."default",
     balance numeric(12,2),
     deleted_at timestamp with time zone,
+    workspace_id integer,
     CONSTRAINT wallets_pkey PRIMARY KEY (id)
-)
+);

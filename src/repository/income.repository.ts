@@ -13,7 +13,7 @@ export class IncomeRepository {
             WHERE i.workspace_id = $1
             AND COALESCE(i.date, i.due_date, i.created_at::date, now()::date) >= $2::date
             AND COALESCE(i.date, i.due_date, i.created_at::date, now()::date) < ($2::date + INTERVAL '1 month')
-            ORDER BY i.paid, i.id DESC
+            ORDER BY i.paid, i.date DESC
             `, [workspaceId, month + '-01']
         );
         return toCamelMany(rows);
@@ -35,8 +35,8 @@ export class IncomeRepository {
     async createIncome(data: CreateIncomeRequest): Promise<Income> {
         const { rows } = await pool.query(`
             INSERT INTO incomes
-            (name, amount, date, due_date, wallet_id, recurring_transaction_id, paid, workspace_id, created_by)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            (name, amount, date, due_date, wallet_id, recurring_transaction_id, paid, workspace_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
             `, [
                 data.name, 
@@ -46,8 +46,7 @@ export class IncomeRepository {
                 data.walletId || null, 
                 data.recurringTransactionId || null, 
                 data.paid ?? true,
-                data.workspaceId,
-                data.createdBy ?? null
+                data.workspaceId
             ]
         );
         return toCamel(rows[0]);
@@ -56,10 +55,10 @@ export class IncomeRepository {
     async updateIncome(data: UpdateIncomeRequest): Promise<Income> {
         const { rows } = await pool.query(`
             UPDATE incomes
-            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5
-            WHERE id = $6
+            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5, paid = $6
+            WHERE id = $7
             RETURNING *
-            `, [data.name, data.amount, data.date || null, data.dueDate || null, data.walletId || null, data.id]
+            `, [data.name, data.amount, data.date || null, data.dueDate || null, data.walletId || null, data.paid ?? false, data.id]
         );
         return toCamel(rows[0]);
     }

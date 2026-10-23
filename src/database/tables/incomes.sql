@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS public.incomes
     paid boolean DEFAULT true,
     deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now(),
+    workspace_id integer,
     CONSTRAINT incomes_pkey PRIMARY KEY (id)
-)
+);
