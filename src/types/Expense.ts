@@ -10,11 +10,15 @@ const expenseSchema = z.object({
     dueDate: z.string().date().nullable(),
     paid: z.boolean(),
     workspaceId: z.coerce.number(),
+    categoryId: z.number().nullable().optional(),
     deletedAt: z.coerce.date().nullable(),
 });
 
 const expenseItemSchema = expenseSchema
-    .extend({ walletName: z.string().nullable().optional() });
+    .extend({ 
+        walletName: z.string().nullable().optional(),
+        categoryName: z.string().nullable().optional(),
+    });
 
 const expensesResponseSchema = z.object({
     expenses: z.array(expenseItemSchema),
@@ -33,6 +37,7 @@ export const createExpenseSchema = expenseSchema
         recurringTransactionId: true,
         dueDate: true,
         walletId: true,
+        categoryId: true,
     })
     .extend({
         isRecurring: z.boolean().optional(),
@@ -47,6 +52,7 @@ export const updateExpenseSchema = expenseSchema
         date: true,
         dueDate: true,
         walletId: true,
+        categoryId: true,
         recurringTransactionId: true,
         workspaceId: true,
         paid: true,

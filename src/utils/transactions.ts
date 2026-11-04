@@ -84,6 +84,8 @@ export function toListResponse<T>(rows: Record<string, any>[]): { items: T[]; to
         paid: row.paid,
         workspaceId: row.workspaceId,
         deletedAt: row.deletedAt,
+        categoryId: row.categoryId,
+        categoryName: row.categoryName,
     }));
     return { items: items as T[], total, totalPaid, totalUnpaid };
 }

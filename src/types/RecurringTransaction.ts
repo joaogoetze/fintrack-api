@@ -8,15 +8,16 @@ const recurringTransactionSchema = z.object({
     amount: z.coerce.number(),
     startDate: z.string().date(),
     dueDate: z.string().date().nullable(),
+    categoryId: z.number().nullable().optional(),
 });
 
 export const createRecurringTransactionSchema = recurringTransactionSchema
     .omit({ id: true })
-    .partial({ dueDate: true });
+    .partial({ dueDate: true, categoryId: true });
 
 export const updateRecurringTransactionSchema = recurringTransactionSchema
     .omit({ type: true, startDate: true })
-    .partial({ workspaceId: true });
+    .partial({ workspaceId: true, categoryId: true });
 
 export type RecurringTransaction = z.infer<typeof recurringTransactionSchema>;
 export type CreateRecurringTransactionInput = z.infer<typeof createRecurringTransactionSchema>;

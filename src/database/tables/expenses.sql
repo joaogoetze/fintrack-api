@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS public.expenses
     deleted_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now(),
     workspace_id integer,
+    category_id integer,
     CONSTRAINT expenses_pkey PRIMARY KEY (id)
 );

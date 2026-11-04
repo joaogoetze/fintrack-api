@@ -30,7 +30,7 @@ export class ExpenseService {
     }
 
     async createExpense(data: CreateExpenseRequest): Promise<Expense> {
-        let { isRecurring, name, amount, date, dueDate, paid, walletId, recurringTransactionId, workspaceId } = data;
+        let { isRecurring, name, amount, date, dueDate, paid, walletId, categoryId, recurringTransactionId, workspaceId } = data;
 
         if (isRecurring) {
             const startDate = date || dueDate || `${new Date().toISOString().slice(0, 10)}`;
@@ -52,6 +52,7 @@ export class ExpenseService {
             date: payment.date,
             dueDate: dueDate || null,
             walletId: payment.walletId,
+            categoryId: categoryId || null,
             recurringTransactionId: recurringTransactionId || null,
             paid: payment.paid,
             workspaceId
@@ -82,6 +83,7 @@ export class ExpenseService {
             : formatDateOnly(ex.date !== undefined ? ex.date : existing.date);
         const newDueDate = formatDateOnly(ex.dueDate !== undefined ? ex.dueDate : existing.dueDate);
         const newWalletId = ex.walletId !== undefined ? ex.walletId : existing.walletId;
+        const newCategoryId = ex.categoryId !== undefined ? ex.categoryId : existing.categoryId;
 
         const payment = resolvePayment({
             date: newDate,
@@ -104,6 +106,7 @@ export class ExpenseService {
             date: payment.date, 
             dueDate: newDueDate, 
             walletId: payment.walletId, 
+            categoryId: newCategoryId,
             paid: payment.paid,
             workspaceId
         });

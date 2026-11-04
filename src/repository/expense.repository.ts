@@ -7,9 +7,10 @@ export class ExpenseRepository {
 
     async getExpenses(month: string, workspaceId: number): Promise<ExpenseItem[]> {   
         const { rows } = await pool.query(`
-            SELECT e.*, w.name as wallet_name
+            SELECT e.*, w.name as wallet_name, c.name as category_name
             FROM expenses e
             LEFT JOIN wallets w ON e.wallet_id = w.id
+            LEFT JOIN categories c ON e.category_id = c.id
             WHERE e.workspace_id = $1
             AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) >= $2::date
             AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) < ($2::date + INTERVAL '1 month')
@@ -35,8 +36,8 @@ export class ExpenseRepository {
     async createExpense(data: CreateExpenseRequest): Promise<Expense> {
         const { rows } = await pool.query(`
             INSERT INTO expenses
-            (name, amount, date, due_date, wallet_id, recurring_transaction_id, paid, workspace_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            (name, amount, date, due_date, wallet_id, category_id, recurring_transaction_id, paid, workspace_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *
             `, [
                 data.name, 
@@ -44,6 +45,7 @@ export class ExpenseRepository {
                 data.date || null, 
                 data.dueDate || null, 
                 data.walletId || null, 
+                data.categoryId || null,
                 data.recurringTransactionId || null, 
                 data.paid ?? true,
                 data.workspaceId
@@ -55,10 +57,10 @@ export class ExpenseRepository {
     async updateExpense(data: UpdateExpenseRequest): Promise<Expense> {
         const { rows } = await pool.query(`
             UPDATE expenses
-            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5, paid = $6
-            WHERE id = $7
+            SET name = $1, amount = $2, date = $3, due_date = $4, wallet_id = $5, category_id = $6, paid = $7
+            WHERE id = $8
             RETURNING *
-            `, [data.name, data.amount, data.date || null, data.dueDate || null, data.walletId || null, data.paid ?? false, data.id]
+            `, [data.name, data.amount, data.date || null, data.dueDate || null, data.walletId || null, data.categoryId || null, data.paid ?? false, data.id]
         );
         return toCamel(rows[0]);
     }
