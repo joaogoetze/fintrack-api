@@ -1,5 +1,5 @@
 import { pool } from '../database';
-import { User, Workspace } from '../types/Auth';
+import { User, Workspace, WorkspaceMember } from '../types/Auth';
 import { toCamel, toCamelMany } from '../utils/case';
 
 export class AuthRepository {
@@ -86,6 +86,25 @@ export class AuthRepository {
             [userId, workspaceId]
         );
         return rows.length > 0;
+    }
+
+    async getWorkspaceMember(userId: number, workspaceId: number): Promise<WorkspaceMember | null> {
+        const { rows } = await pool.query(
+            `SELECT * FROM workspace_members WHERE user_id = $1 AND workspace_id = $2`,
+            [userId, workspaceId]
+        );
+        return rows.length ? toCamel(rows[0]) : null;
+    }
+
+    async updateWorkspaceName(workspaceId: number, name: string): Promise<Workspace | null> {
+        const { rows } = await pool.query(
+            `UPDATE workspaces
+             SET name = $1
+             WHERE id = $2
+             RETURNING *`,
+            [name, workspaceId]
+        );
+        return rows.length ? toCamel(rows[0]) : null;
     }
 
     async getWorkspaceById(workspaceId: number): Promise<Workspace | null> {

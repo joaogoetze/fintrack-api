@@ -48,6 +48,10 @@ export const createWorkspaceRequestSchema = z.object({
     name: z.string().min(1, "Nome do espaço é obrigatório"),
 });
 
+export const updateWorkspaceRequestSchema = z.object({
+    name: z.string().trim().min(1, "Nome do espaço é obrigatório"),
+});
+
 export const inviteUserRequestSchema = z.object({
     email: z.string().email("E-mail inválido"),
 });
@@ -67,4 +71,5 @@ export type WorkspaceMember = z.infer<typeof workspaceMemberSchema>;
 export type WorkspaceInvite = z.infer<typeof workspaceInviteSchema>;
 export type GoogleLoginRequest = z.infer<typeof googleLoginRequestSchema>;
 export type CreateWorkspaceRequest = z.infer<typeof createWorkspaceRequestSchema>;
+export type UpdateWorkspaceRequest = z.infer<typeof updateWorkspaceRequestSchema>;
 export type InviteUserRequest = z.infer<typeof inviteUserRequestSchema>;

@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { 
     googleLoginRequestSchema, 
     createWorkspaceRequestSchema, 
+    updateWorkspaceRequestSchema,
     inviteUserRequestSchema, 
     inviteParamSchema, 
     workspaceParamSchema 
@@ -60,6 +61,37 @@ export class AuthController {
         } catch (error: any) {
             console.error('Erro ao criar workspace:', error);
             res.status(400).json({ error: error.message || 'Erro ao criar espaço' });
+        }
+    }
+
+    async updateWorkspace(req: Request, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({ error: 'Não autenticado' });
+                return;
+            }
+
+            const parsedParam = workspaceParamSchema.safeParse(req.params);
+            if (!parsedParam.success) {
+                res.status(400).json({ errors: parsedParam.error.flatten() });
+                return;
+            }
+
+            const parsedBody = updateWorkspaceRequestSchema.safeParse(req.body);
+            if (!parsedBody.success) {
+                res.status(400).json({ errors: parsedBody.error.flatten() });
+                return;
+            }
+
+            const workspace = await authService.updateWorkspace(
+                parsedParam.data.workspaceId,
+                req.user.id,
+                parsedBody.data.name.trim()
+            );
+            res.json(workspace);
+        } catch (error: any) {
+            console.error('Erro ao atualizar workspace:', error);
+            res.status(400).json({ error: error.message || 'Erro ao renomear espaço' });
         }
     }
 

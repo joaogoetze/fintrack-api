@@ -10,6 +10,8 @@ authRoutes.get('/me', authMiddleware, (req, res) => authController.getMe(req, re
 
 // Rotas de Workspaces e Convites
 authRoutes.post('/workspaces', authMiddleware, (req, res) => authController.createWorkspace(req, res));
+authRoutes.put('/workspaces/:workspaceId', authMiddleware, (req, res) => authController.updateWorkspace(req, res));
+authRoutes.patch('/workspaces/:workspaceId', authMiddleware, (req, res) => authController.updateWorkspace(req, res));
 authRoutes.post('/workspaces/:workspaceId/invites', authMiddleware, (req, res) => authController.inviteUser(req, res));
 authRoutes.get('/invites', authMiddleware, (req, res) => authController.getMyInvites(req, res));
 authRoutes.post('/invites/:inviteId/accept', authMiddleware, (req, res) => authController.acceptInvite(req, res));

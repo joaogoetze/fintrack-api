@@ -73,6 +73,31 @@ export class AuthService {
         return this.authRepository.createWorkspace(name, userId);
     }
 
+    async updateWorkspace(workspaceId: number, userId: number, name: string): Promise<Workspace> {
+        const workspace = await this.authRepository.getWorkspaceById(workspaceId);
+        if (!workspace) {
+            throw new Error('Espaço não encontrado');
+        }
+
+        const member = await this.authRepository.getWorkspaceMember(userId, workspaceId);
+        const isOwner = workspace.ownerId === userId || member?.role === 'owner';
+        const isAdmin = member?.role === 'admin';
+
+        if (!isOwner && !isAdmin) {
+            throw new Error('Você não tem permissão para renomear este espaço');
+        }
+
+        const updated = await this.authRepository.updateWorkspaceName(workspaceId, name);
+        if (!updated) {
+            throw new Error('Falha ao renomear o espaço');
+        }
+
+        return {
+            ...updated,
+            role: member?.role || (workspace.ownerId === userId ? 'owner' : 'member'),
+        };
+    }
+
 
     async inviteUser(workspaceId: number, inviterId: number, inviterEmail: string, emailToInvite: string) {
         const cleanEmail = emailToInvite.toLowerCase().trim();
