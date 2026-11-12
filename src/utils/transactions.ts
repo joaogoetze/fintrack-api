@@ -11,6 +11,7 @@ export type MaterializeInput = {
     paid: boolean;
     workspaceId: number;
     walletId?: number | null;
+    categoryId?: number | null;
     recurringTransactionId?: number | null;
 };
 
@@ -56,6 +57,7 @@ export async function materializeRecurring<T extends ExistingTx>(args: {
             isRecurring: false,
             paid: false,
             workspaceId,
+            categoryId: recurringTx.categoryId ?? null,
             recurringTransactionId: recurringTx.id,
         });
         existing.push(created);

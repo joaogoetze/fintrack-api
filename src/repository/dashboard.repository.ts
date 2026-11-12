@@ -88,4 +88,37 @@ export class DashboardRepository {
         );
         return toCamelMany(rows);
     }
+
+    async getCategoryEstimates(month: string, workspaceId: number): Promise<{
+        id: number;
+        name: string;
+        estimatedAmount: number;
+        marginPercent: number;
+        spent: number;
+    }[]> {
+        const { rows } = await pool.query(`
+            SELECT
+                c.id,
+                c.name,
+                c.estimated_amount,
+                COALESCE(c.margin_percent, 0) AS margin_percent,
+                COALESCE(spent.total, 0) AS spent
+            FROM categories c
+            LEFT JOIN (
+                SELECT e.category_id, SUM(e.amount) AS total
+                FROM expenses e
+                WHERE e.workspace_id = $2
+                AND e.deleted_at IS NULL
+                AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) >= $1::date
+                AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) < ($1::date + INTERVAL '1 month')
+                GROUP BY e.category_id
+            ) spent ON spent.category_id = c.id
+            WHERE c.workspace_id = $2
+            AND c.deleted_at IS NULL
+            AND c.estimated_amount IS NOT NULL
+            ORDER BY c.name ASC
+            `, [month + '-01', workspaceId]
+        );
+        return toCamelMany(rows);
+    }
 }

@@ -13,7 +13,7 @@ export class CategoryRepository {
             ORDER BY name ASC
             `, [workspaceId]
         );
-        return toCamelMany(rows);
+        return toCamelMany(rows).map(normalizeCategory);
     }
 
     async getCategoryById(id: number, workspaceId: number): Promise<Category | undefined> {
@@ -23,29 +23,40 @@ export class CategoryRepository {
             WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL
             `, [id, workspaceId]
         );
-        return toCamel(rows[0]);
+        return rows[0] ? normalizeCategory(toCamel(rows[0])) : undefined;
     }
 
     async createCategory(data: CreateCategoryRequest): Promise<Category> {
         const { rows } = await pool.query(`
             INSERT INTO categories
-            (name, workspace_id)
-            VALUES ($1, $2)
+            (name, workspace_id, estimated_amount, margin_percent)
+            VALUES ($1, $2, $3, $4)
             RETURNING *
-            `, [data.name, data.workspaceId]
+            `, [
+                data.name,
+                data.workspaceId,
+                data.estimatedAmount || null,
+                data.marginPercent ?? 0,
+            ]
         );
-        return toCamel(rows[0]);
+        return normalizeCategory(toCamel(rows[0]));
     }
 
     async updateCategory(data: UpdateCategoryRequest, workspaceId: number): Promise<Category> {
         const { rows } = await pool.query(`
             UPDATE categories
-            SET name = $1
-            WHERE id = $2 AND workspace_id = $3 AND deleted_at IS NULL
+            SET name = $1, estimated_amount = $2, margin_percent = $3
+            WHERE id = $4 AND workspace_id = $5 AND deleted_at IS NULL
             RETURNING *
-            `, [data.name, data.id, workspaceId]
+            `, [
+                data.name,
+                data.estimatedAmount || null,
+                data.marginPercent ?? 0,
+                data.id,
+                workspaceId,
+            ]
         );
-        return toCamel(rows[0]);
+        return normalizeCategory(toCamel(rows[0]));
     }
 
     async deleteCategory(id: number, workspaceId: number): Promise<Category> {
@@ -56,6 +67,14 @@ export class CategoryRepository {
             RETURNING *
             `, [id, workspaceId]
         );
-        return toCamel(rows[0]);
+        return normalizeCategory(toCamel(rows[0]));
     }
+}
+
+function normalizeCategory(row: Category): Category {
+    return {
+        ...row,
+        estimatedAmount: row.estimatedAmount == null ? null : Number(row.estimatedAmount),
+        marginPercent: row.marginPercent == null ? null : Number(row.marginPercent),
+    };
 }

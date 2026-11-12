@@ -40,7 +40,8 @@ export class ExpenseService {
                 amount,
                 startDate,
                 dueDate,
-                workspaceId
+                workspaceId,
+                categoryId: categoryId || null,
             });
         }
 
@@ -123,7 +124,8 @@ export class ExpenseService {
                 id: ex.recurringTransactionId, 
                 name: newName, 
                 amount: newAmount, 
-                dueDate: newDueDate 
+                dueDate: newDueDate,
+                categoryId: newCategoryId,
             });
         }
 

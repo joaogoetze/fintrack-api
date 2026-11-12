@@ -2,7 +2,7 @@ import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseService } from "./expense.service";
 import { IncomeService } from "./income.service";
 import { formatDateOnly } from "../utils/dates";
-import { Summary, DueTransaction } from "../types/Dashboard";
+import { Summary, DueTransaction, CategoryEstimate } from "../types/Dashboard";
 
 export class DashboardService {
     constructor(
@@ -28,6 +28,28 @@ export class DashboardService {
         const paidExpenses = Number(summary.paidExpenses || 0);
         const unpaidExpenses = Number(summary.unpaidExpenses || 0);
 
+        const estimateRows = await this.dashboardRepository.getCategoryEstimates(month, workspaceId);
+        const categoryEstimates: CategoryEstimate[] = estimateRows.map((row) => {
+            const estimatedAmount = Number(row.estimatedAmount);
+            const marginPercent = Number(row.marginPercent || 0);
+            const spent = Number(row.spent || 0);
+            const cap = Math.round(estimatedAmount * (1 + marginPercent / 100) * 100) / 100;
+            const remaining = Math.max(0, Math.round((cap - spent) * 100) / 100);
+            return {
+                categoryId: row.id,
+                name: row.name,
+                estimatedAmount,
+                marginPercent,
+                cap,
+                spent,
+                remaining,
+            };
+        });
+        const categoryEstimateRemaining = categoryEstimates.reduce(
+            (sum, item) => sum + item.remaining,
+            0
+        );
+
         return { 
             totalIncome, 
             paidIncome,
@@ -35,8 +57,10 @@ export class DashboardService {
             totalExpenses, 
             paidExpenses,
             unpaidExpenses,
+            categoryEstimateRemaining,
+            categoryEstimates,
             balance: paidIncome - paidExpenses,
-            projectedBalance: totalIncome - totalExpenses
+            projectedBalance: totalIncome - (totalExpenses + categoryEstimateRemaining)
         };
     }
 

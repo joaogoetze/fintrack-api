@@ -65,9 +65,9 @@ export class RecurringTransactionRepository {
     async updateRecurringTransaction(data: UpdateRecurringTransactionInput): Promise<void> {
         await pool.query(`
             UPDATE recurring_transactions 
-            SET name = $1, amount = $2, due_date = $3
-            WHERE id = $4
-            `, [data.name, data.amount, data.dueDate ?? null, data.id]
+            SET name = $1, amount = $2, due_date = $3, category_id = $4
+            WHERE id = $5
+            `, [data.name, data.amount, data.dueDate ?? null, data.categoryId ?? null, data.id]
         );
     }
 }
