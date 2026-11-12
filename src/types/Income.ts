@@ -35,7 +35,6 @@ export const createIncomeSchema = incomeSchema
         walletId: true,
     })
     .extend({
-        isRecurring: z.boolean().optional(),
         paid: z.boolean().optional()
     });
 
@@ -53,7 +52,6 @@ export const updateIncomeSchema = incomeSchema
     })
     .extend({
         id: z.number(),
-        updateRecurringTransaction: z.boolean().optional()
     });
 
 

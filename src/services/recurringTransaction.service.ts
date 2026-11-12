@@ -1,5 +1,11 @@
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
-import { RecurringTransactionsResponse } from "../types/RecurringTransaction";
+import {
+    CreateRecurringTransactionInput,
+    RecurringTransactionItem,
+    RecurringTransactionsResponse,
+    UpdateRecurringTransactionInput
+} from "../types/RecurringTransaction";
+import { AppError } from "../utils/errors";
 
 export class RecurringTransactionService {
     constructor(private recurringTransactionRepository: RecurringTransactionRepository) {}
@@ -23,5 +29,24 @@ export class RecurringTransactionService {
             balance: totalIncomes - totalExpenses,
         };
     }
-}
 
+    async createRecurringTransaction(data: CreateRecurringTransactionInput): Promise<RecurringTransactionItem> {
+        return await this.recurringTransactionRepository.createRecurringTransacion(data);
+    }
+
+    async updateRecurringTransaction(data: UpdateRecurringTransactionInput, workspaceId: number): Promise<RecurringTransactionItem> {
+        const updated = await this.recurringTransactionRepository.updateRecurringTransaction(data, workspaceId);
+        if (!updated) {
+            throw new AppError(404, "Transação recorrente não encontrada");
+        }
+        return updated;
+    }
+
+    async deleteRecurringTransaction(id: number, workspaceId: number): Promise<RecurringTransactionItem> {
+        const deleted = await this.recurringTransactionRepository.deleteRecurringTransaction(id, workspaceId);
+        if (!deleted) {
+            throw new AppError(404, "Transação recorrente não encontrada");
+        }
+        return deleted;
+    }
+}

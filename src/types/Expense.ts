@@ -40,7 +40,6 @@ export const createExpenseSchema = expenseSchema
         categoryId: true,
     })
     .extend({
-        isRecurring: z.boolean().optional(),
         paid: z.boolean().optional()
     });
 
@@ -59,7 +58,6 @@ export const updateExpenseSchema = expenseSchema
     })
     .extend({
         id: z.number(),
-        updateRecurringTransaction: z.boolean().optional()
     });
 
 

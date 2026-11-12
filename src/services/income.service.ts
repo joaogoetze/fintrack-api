@@ -29,21 +29,9 @@ export class IncomeService {
     }
 
     async createIncome(data: CreateIncomeRequest): Promise<Income> {
-        let { name, amount, date, dueDate, isRecurring, walletId, recurringTransactionId, paid, workspaceId } = data;
+        let { name, amount, date, dueDate, walletId, recurringTransactionId, paid, workspaceId } = data;
 
-        if (isRecurring) {
-            const startDate = date || dueDate || `${new Date().toISOString().slice(0, 10)}`;
-            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion({
-                type: "income",
-                name,
-                amount,
-                startDate,
-                dueDate,
-                workspaceId
-            });
-        }
-
-        const payment = resolvePayment({ date, paid, walletId, isRecurring });
+        const payment = resolvePayment({ date, paid, walletId });
 
         const createdIncome = await this.incomeRepository.createIncome({
             name,
@@ -112,15 +100,6 @@ export class IncomeService {
                 id: payment.walletId, 
                 balance: newAmount, 
                 operation: "income"
-            });
-        }
-
-        if (i.updateRecurringTransaction && i.recurringTransactionId) {
-            await this.recurringTransactionRepository.updateRecurringTransaction({ 
-                id: i.recurringTransactionId, 
-                name: newName, 
-                amount: newAmount, 
-                dueDate: newDueDate 
             });
         }
 

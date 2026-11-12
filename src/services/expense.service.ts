@@ -30,22 +30,9 @@ export class ExpenseService {
     }
 
     async createExpense(data: CreateExpenseRequest): Promise<Expense> {
-        let { isRecurring, name, amount, date, dueDate, paid, walletId, categoryId, recurringTransactionId, workspaceId } = data;
+        let { name, amount, date, dueDate, paid, walletId, categoryId, recurringTransactionId, workspaceId } = data;
 
-        if (isRecurring) {
-            const startDate = date || dueDate || `${new Date().toISOString().slice(0, 10)}`;
-            recurringTransactionId = await this.recurringTransactionRepository.createRecurringTransacion({
-                type: "expense",
-                name,
-                amount,
-                startDate,
-                dueDate,
-                workspaceId,
-                categoryId: categoryId || null,
-            });
-        }
-
-        const payment = resolvePayment({ date, paid, walletId, isRecurring });
+        const payment = resolvePayment({ date, paid, walletId });
 
         const createdExpense = await this.expenseRepository.createExpense({
             name,
@@ -119,16 +106,6 @@ export class ExpenseService {
                 operation: "expense" 
             });
         }
-        if (ex.updateRecurringTransaction && ex.recurringTransactionId) {
-            await this.recurringTransactionRepository.updateRecurringTransaction({ 
-                id: ex.recurringTransactionId, 
-                name: newName, 
-                amount: newAmount, 
-                dueDate: newDueDate,
-                categoryId: newCategoryId,
-            });
-        }
-
         return withDateOnly(updatedExpense);
     }
 

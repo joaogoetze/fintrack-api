@@ -10,4 +10,7 @@ const recurringTransactionService = new RecurringTransactionService(recurringTra
 const recurringTransactionController = new RecurringTransactionController(recurringTransactionService);
 
 recurringTransactionRoutes.get("/", recurringTransactionController.getRecurringTransactions);
+recurringTransactionRoutes.post("/", recurringTransactionController.createRecurringTransaction);
+recurringTransactionRoutes.put("/:id", recurringTransactionController.updateRecurringTransaction);
+recurringTransactionRoutes.delete("/:id", recurringTransactionController.deleteRecurringTransaction);
 
