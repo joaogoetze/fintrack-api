@@ -68,7 +68,9 @@ export class DashboardRepository {
             AND e.due_date >= $1::date
             AND e.due_date < ($1::date + INTERVAL '1 month')
             AND e.deleted_at IS NULL
-            ORDER BY e.paid, e.due_date ASC
+            ORDER BY e.paid ASC,
+                CASE WHEN e.paid THEN NULL ELSE e.due_date END ASC NULLS LAST,
+                CASE WHEN e.paid THEN e.date ELSE NULL END DESC NULLS LAST
             `, [month + '-01', workspaceId]
         );
         return toCamelMany(rows);
@@ -83,7 +85,9 @@ export class DashboardRepository {
             AND i.due_date >= $1::date
             AND i.due_date < ($1::date + INTERVAL '1 month')
             AND i.deleted_at IS NULL
-            ORDER BY i.paid, i.due_date ASC
+            ORDER BY i.paid ASC,
+                CASE WHEN i.paid THEN NULL ELSE i.due_date END ASC NULLS LAST,
+                CASE WHEN i.paid THEN i.date ELSE NULL END DESC NULLS LAST
             `, [month + '-01', workspaceId]
         );
         return toCamelMany(rows);

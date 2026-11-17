@@ -13,7 +13,7 @@ export const workspaceSchema = z.object({
     id: z.number(),
     name: z.string(),
     ownerId: z.number(),
-    role: z.enum(["owner", "admin", "member"]).optional(),
+    role: z.enum(["owner", "member"]).optional(),
     createdAt: z.coerce.date().optional(),
 });
 
@@ -22,8 +22,15 @@ export const workspaceMemberSchema = z.object({
     id: z.number(),
     workspaceId: z.number(),
     userId: z.number(),
-    role: z.enum(["owner", "admin", "member"]),
+    role: z.enum(["owner", "member"]),
     createdAt: z.coerce.date().optional(),
+});
+
+export const workspaceMemberListItemSchema = z.object({
+    userId: z.number(),
+    name: z.string(),
+    email: z.string().email(),
+    role: z.enum(["owner", "member"]),
 });
 
 export const workspaceInviteSchema = z.object({
@@ -64,10 +71,16 @@ export const workspaceParamSchema = z.object({
     workspaceId: z.coerce.number().int().positive(),
 });
 
+export const workspaceMemberParamSchema = z.object({
+    workspaceId: z.coerce.number().int().positive(),
+    userId: z.coerce.number().int().positive(),
+});
+
 // Tipos Inferidos
 export type User = z.infer<typeof userSchema>;
 export type Workspace = z.infer<typeof workspaceSchema>;
 export type WorkspaceMember = z.infer<typeof workspaceMemberSchema>;
+export type WorkspaceMemberListItem = z.infer<typeof workspaceMemberListItemSchema>;
 export type WorkspaceInvite = z.infer<typeof workspaceInviteSchema>;
 export type GoogleLoginRequest = z.infer<typeof googleLoginRequestSchema>;
 export type CreateWorkspaceRequest = z.infer<typeof createWorkspaceRequestSchema>;

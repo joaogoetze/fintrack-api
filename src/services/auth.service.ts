@@ -81,9 +81,8 @@ export class AuthService {
 
         const member = await this.authRepository.getWorkspaceMember(userId, workspaceId);
         const isOwner = workspace.ownerId === userId || member?.role === 'owner';
-        const isAdmin = member?.role === 'admin';
 
-        if (!isOwner && !isAdmin) {
+        if (!isOwner) {
             throw new Error('Você não tem permissão para renomear este espaço');
         }
 
@@ -98,6 +97,42 @@ export class AuthService {
         };
     }
 
+
+    async getWorkspaceMembers(workspaceId: number, requesterId: number) {
+        const hasAccess = await this.authRepository.isUserInWorkspace(requesterId, workspaceId);
+        if (!hasAccess) {
+            throw new Error('Você não tem permissão para ver os membros deste espaço');
+        }
+
+        return this.authRepository.getWorkspaceMembers(workspaceId);
+    }
+
+    async removeWorkspaceMember(workspaceId: number, requesterId: number, targetUserId: number) {
+        const workspace = await this.authRepository.getWorkspaceById(workspaceId);
+        if (!workspace) {
+            throw new Error('Espaço não encontrado');
+        }
+
+        const requester = await this.authRepository.getWorkspaceMember(requesterId, workspaceId);
+        const isOwner = workspace.ownerId === requesterId || requester?.role === 'owner';
+        if (!isOwner) {
+            throw new Error('Apenas o dono pode remover membros deste espaço');
+        }
+
+        if (targetUserId === requesterId || targetUserId === workspace.ownerId) {
+            throw new Error('O dono do espaço não pode ser removido');
+        }
+
+        const target = await this.authRepository.getWorkspaceMember(targetUserId, workspaceId);
+        if (!target) {
+            throw new Error('Este usuário não faz parte deste espaço');
+        }
+
+        const removed = await this.authRepository.removeWorkspaceMember(workspaceId, targetUserId);
+        if (!removed) {
+            throw new Error('Não foi possível remover o membro');
+        }
+    }
 
     async inviteUser(workspaceId: number, inviterId: number, inviterEmail: string, emailToInvite: string) {
         const cleanEmail = emailToInvite.toLowerCase().trim();

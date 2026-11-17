@@ -96,6 +96,27 @@ export class AuthRepository {
         return rows.length ? toCamel(rows[0]) : null;
     }
 
+    async getWorkspaceMembers(workspaceId: number) {
+        const { rows } = await pool.query(
+            `SELECT u.id as user_id, u.name, u.email, wm.role
+             FROM workspace_members wm
+             INNER JOIN users u ON u.id = wm.user_id
+             WHERE wm.workspace_id = $1
+             ORDER BY wm.role DESC, u.name ASC`,
+            [workspaceId]
+        );
+        return toCamelMany(rows);
+    }
+
+    async removeWorkspaceMember(workspaceId: number, userId: number): Promise<boolean> {
+        const { rowCount } = await pool.query(
+            `DELETE FROM workspace_members
+             WHERE workspace_id = $1 AND user_id = $2 AND role <> 'owner'`,
+            [workspaceId, userId]
+        );
+        return (rowCount ?? 0) > 0;
+    }
+
     async updateWorkspaceName(workspaceId: number, name: string): Promise<Workspace | null> {
         const { rows } = await pool.query(
             `UPDATE workspaces

@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { inviteSseHub } from '../sse/inviteSseHub';
 import { 
     googleLoginRequestSchema, 
     createWorkspaceRequestSchema, 
     updateWorkspaceRequestSchema,
     inviteUserRequestSchema, 
     inviteParamSchema, 
-    workspaceParamSchema 
+    workspaceParamSchema,
+    workspaceMemberParamSchema,
 } from '../types/Auth';
 
 const authService = new AuthService();
@@ -95,6 +97,55 @@ export class AuthController {
         }
     }
 
+    async getWorkspaceMembers(req: Request, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({ error: 'Não autenticado' });
+                return;
+            }
+
+            const parsedParam = workspaceParamSchema.safeParse(req.params);
+            if (!parsedParam.success) {
+                res.status(400).json({ errors: parsedParam.error.flatten() });
+                return;
+            }
+
+            const members = await authService.getWorkspaceMembers(
+                parsedParam.data.workspaceId,
+                req.user.id
+            );
+            res.json(members);
+        } catch (error: any) {
+            console.error('Erro ao listar membros:', error);
+            res.status(400).json({ error: error.message || 'Erro ao listar membros' });
+        }
+    }
+
+    async removeWorkspaceMember(req: Request, res: Response): Promise<void> {
+        try {
+            if (!req.user) {
+                res.status(401).json({ error: 'Não autenticado' });
+                return;
+            }
+
+            const parsedParam = workspaceMemberParamSchema.safeParse(req.params);
+            if (!parsedParam.success) {
+                res.status(400).json({ errors: parsedParam.error.flatten() });
+                return;
+            }
+
+            await authService.removeWorkspaceMember(
+                parsedParam.data.workspaceId,
+                req.user.id,
+                parsedParam.data.userId
+            );
+            res.json({ success: true });
+        } catch (error: any) {
+            console.error('Erro ao remover membro:', error);
+            res.status(400).json({ error: error.message || 'Erro ao remover membro' });
+        }
+    }
+
     async inviteUser(req: Request, res: Response): Promise<void> {
         try {
             if (!req.user) {
@@ -120,11 +171,37 @@ export class AuthController {
                 req.user.email, 
                 parsedBody.data.email
             );
+            inviteSseHub.publish(parsedBody.data.email);
             res.status(201).json(invite);
         } catch (error: any) {
             console.error('Erro ao enviar convite:', error);
             res.status(400).json({ error: error.message || 'Erro ao enviar convite' });
         }
+    }
+
+    streamInvites(req: Request, res: Response): void {
+        if (!req.user?.email) {
+            res.status(401).json({ error: 'Não autenticado' });
+            return;
+        }
+
+        const email = req.user.email;
+        res.status(200);
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+        res.flushHeaders?.();
+        res.write(': connected\n\n');
+
+        req.socket.setTimeout(0);
+        inviteSseHub.subscribe(email, res);
+
+        const onClose = () => {
+            inviteSseHub.unsubscribe(email, res);
+        };
+        req.on('close', onClose);
+        req.on('end', onClose);
     }
 
     async getMyInvites(req: Request, res: Response): Promise<void> {

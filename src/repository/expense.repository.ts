@@ -14,7 +14,9 @@ export class ExpenseRepository {
             WHERE e.workspace_id = $1
             AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) >= $2::date
             AND COALESCE(e.date, e.due_date, e.created_at::date, now()::date) < ($2::date + INTERVAL '1 month')
-            ORDER BY e.paid, e.due_date, e.date DESC
+            ORDER BY e.paid ASC,
+                CASE WHEN e.paid THEN NULL ELSE e.due_date END ASC NULLS LAST,
+                CASE WHEN e.paid THEN e.date ELSE NULL END DESC NULLS LAST
             `, [workspaceId, month + '-01']
         );
         return toCamelMany(rows);

@@ -74,29 +74,31 @@ export class DashboardService {
         
         const transactions = [...dueExpenses, ...dueIncomes];
 
-        transactions.sort(function (a, b) {
+        const dateKey = (value: string | Date | null | undefined): string | null => {
+            if (!value) return null;
+            return typeof value === "string" ? value.slice(0, 10) : formatDateOnly(value);
+        };
+
+        transactions.sort((a, b) => {
             if (a.paid !== b.paid) {
                 return a.paid ? 1 : -1;
             }
-            
-            if(a.dueDate && b.dueDate) {
-                if (a.dueDate > b.dueDate) {
-                    return 1;
-                }
-                if (a.dueDate < b.dueDate) {
-                    return -1;
-                }
-            }
-            return 0;
-        });
 
-        transactions.sort(function (a, b) {
-            if(a.dueDate && b.dueDate) {
-                if (a.paid) {
-                    return 1;
-                }
+            if (!a.paid) {
+                const dueA = dateKey(a.dueDate);
+                const dueB = dateKey(b.dueDate);
+                if (dueA === dueB) return 0;
+                if (!dueA) return 1;
+                if (!dueB) return -1;
+                return dueA < dueB ? -1 : 1;
             }
-            return 0;
+
+            const dateA = dateKey(a.date);
+            const dateB = dateKey(b.date);
+            if (dateA === dateB) return 0;
+            if (!dateA) return 1;
+            if (!dateB) return -1;
+            return dateA > dateB ? -1 : 1;
         });
 
         const normalize = (e: DueTransaction): DueTransaction => ({
