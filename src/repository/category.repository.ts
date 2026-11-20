@@ -29,14 +29,13 @@ export class CategoryRepository {
     async createCategory(data: CreateCategoryRequest): Promise<Category> {
         const { rows } = await pool.query(`
             INSERT INTO categories
-            (name, workspace_id, estimated_amount, margin_percent)
-            VALUES ($1, $2, $3, $4)
+            (name, workspace_id, estimated_amount)
+            VALUES ($1, $2, $3)
             RETURNING *
             `, [
                 data.name,
                 data.workspaceId,
                 data.estimatedAmount || null,
-                data.marginPercent ?? 0,
             ]
         );
         return normalizeCategory(toCamel(rows[0]));
@@ -45,13 +44,12 @@ export class CategoryRepository {
     async updateCategory(data: UpdateCategoryRequest, workspaceId: number): Promise<Category> {
         const { rows } = await pool.query(`
             UPDATE categories
-            SET name = $1, estimated_amount = $2, margin_percent = $3
-            WHERE id = $4 AND workspace_id = $5 AND deleted_at IS NULL
+            SET name = $1, estimated_amount = $2
+            WHERE id = $3 AND workspace_id = $4 AND deleted_at IS NULL
             RETURNING *
             `, [
                 data.name,
                 data.estimatedAmount || null,
-                data.marginPercent ?? 0,
                 data.id,
                 workspaceId,
             ]
@@ -75,6 +73,5 @@ function normalizeCategory(row: Category): Category {
     return {
         ...row,
         estimatedAmount: row.estimatedAmount == null ? null : Number(row.estimatedAmount),
-        marginPercent: row.marginPercent == null ? null : Number(row.marginPercent),
     };
 }

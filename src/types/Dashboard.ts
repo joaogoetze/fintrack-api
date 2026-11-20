@@ -4,7 +4,6 @@ export const categoryEstimateSchema = z.object({
     categoryId: z.number(),
     name: z.string(),
     estimatedAmount: z.coerce.number(),
-    marginPercent: z.coerce.number(),
     cap: z.coerce.number(),
     spent: z.coerce.number(),
     remaining: z.coerce.number(),

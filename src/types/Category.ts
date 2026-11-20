@@ -5,16 +5,10 @@ const nullableAmount = z.preprocess(
     z.coerce.number().nullable().optional()
 );
 
-const nullableMargin = z.preprocess(
-    (val) => (val === "" || val === undefined ? null : val),
-    z.coerce.number().min(0).max(100).nullable().optional()
-);
-
 const categorySchema = z.object({
     id: z.number(),
     name: z.string().min(1, "Nome é obrigatório"),
     estimatedAmount: z.coerce.number().nullable().optional(),
-    marginPercent: z.coerce.number().nullable().optional(),
     deletedAt: z.coerce.date().nullable(),
     createdAt: z.coerce.date().optional(),
     workspaceId: z.coerce.number(),
@@ -32,7 +26,6 @@ export const createCategorySchema = categorySchema
     })
     .extend({
         estimatedAmount: nullableAmount,
-        marginPercent: nullableMargin,
     });
 
 export const updateCategorySchema = categorySchema
@@ -42,7 +35,6 @@ export const updateCategorySchema = categorySchema
     })
     .extend({
         estimatedAmount: nullableAmount,
-        marginPercent: nullableMargin,
     });
 
 export type Category = z.infer<typeof categorySchema>;

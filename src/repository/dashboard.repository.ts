@@ -97,7 +97,6 @@ export class DashboardRepository {
         id: number;
         name: string;
         estimatedAmount: number;
-        marginPercent: number;
         spent: number;
     }[]> {
         const { rows } = await pool.query(`
@@ -105,7 +104,6 @@ export class DashboardRepository {
                 c.id,
                 c.name,
                 c.estimated_amount,
-                COALESCE(c.margin_percent, 0) AS margin_percent,
                 COALESCE(spent.total, 0) AS spent
             FROM categories c
             LEFT JOIN (

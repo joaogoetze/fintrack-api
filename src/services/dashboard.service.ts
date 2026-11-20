@@ -31,15 +31,13 @@ export class DashboardService {
         const estimateRows = await this.dashboardRepository.getCategoryEstimates(month, workspaceId);
         const categoryEstimates: CategoryEstimate[] = estimateRows.map((row) => {
             const estimatedAmount = Number(row.estimatedAmount);
-            const marginPercent = Number(row.marginPercent || 0);
             const spent = Number(row.spent || 0);
-            const cap = Math.round(estimatedAmount * (1 + marginPercent / 100) * 100) / 100;
+            const cap = Math.round(estimatedAmount * 100) / 100;
             const remaining = Math.max(0, Math.round((cap - spent) * 100) / 100);
             return {
                 categoryId: row.id,
                 name: row.name,
                 estimatedAmount,
-                marginPercent,
                 cap,
                 spent,
                 remaining,
