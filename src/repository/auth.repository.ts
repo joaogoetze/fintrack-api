@@ -1,6 +1,6 @@
-import { pool } from '../database';
-import { User, Workspace, WorkspaceMember } from '../types/Auth';
-import { toCamel, toCamelMany } from '../utils/case';
+import { User, Workspace, WorkspaceMember } from "../types/Auth";
+import { pool } from "../database";
+import { toCamel, toCamelMany } from "../utils/case";
 
 export class AuthRepository {
     async findUserByGoogleId(googleId: string): Promise<User | null> {

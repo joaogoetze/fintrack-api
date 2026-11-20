@@ -1,7 +1,6 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamel, toCamelMany } from '../utils/case';
-import { Income, UpdateIncomeRequest, IncomeItem, CreateIncomeRequest } from '../types/Income';
+import { Income, UpdateIncomeRequest, IncomeItem, CreateIncomeRequest } from "../types/Income";
+import { pool } from "../database";
+import { toCamel, toCamelMany } from "../utils/case";
 
 export class IncomeRepository {
 

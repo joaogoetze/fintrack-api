@@ -27,9 +27,11 @@ export const updateWalletSchema = walletSchema
         balance: true,
     });
 
-export const updateWalletValueSchema = updateWalletSchema
-    .omit({ name: true})
-    .extend({ operation: z.enum(["income", "expense"])});
+export const updateWalletValueSchema = z.object({
+    id: z.number(),
+    amount: z.coerce.number(),
+    operation: z.enum(["income", "expense"]),
+});
 
 export type Wallet = z.infer<typeof walletSchema>;
 export type WalletsResponse = z.infer<typeof walletsResponseSchema>

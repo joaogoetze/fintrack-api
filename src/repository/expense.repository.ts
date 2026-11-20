@@ -1,7 +1,6 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamel, toCamelMany } from '../utils/case';
-import { Expense, UpdateExpenseRequest, ExpenseItem, CreateExpenseRequest } from '../types/Expense';
+import { Expense, UpdateExpenseRequest, ExpenseItem, CreateExpenseRequest } from "../types/Expense";
+import { pool } from "../database";
+import { toCamel, toCamelMany } from "../utils/case";
 
 export class ExpenseRepository {
 

@@ -2,10 +2,10 @@ import { IncomeRepository } from "../repository/income.repository";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
 import { WalletRepository } from "../repository/wallet.repository";
 import { CreateIncomeRequest, UpdateIncomeRequest, Income, IncomeItem, IncomesResponse, UpdateIncomePaidStatusRequest } from "../types/Income";
+import { materializeRecurring, toListResponse } from "../utils/transactions";
+import { resolvePayment } from "../utils/paid";
 import { formatDateOnly, withDateOnly } from "../utils/dates";
 import { AppError } from "../utils/errors";
-import { resolvePayment } from "../utils/paid";
-import { materializeRecurring, toListResponse } from "../utils/transactions";
 
 export class IncomeService {
     constructor(
@@ -47,7 +47,7 @@ export class IncomeService {
         if (payment.walletId && payment.paid) {
             await this.walletRepository.updateWalletValue({
                 id: payment.walletId, 
-                balance: amount, 
+                amount, 
                 operation: "income"
             });
         }
@@ -79,7 +79,7 @@ export class IncomeService {
         if (existing.paid && existing.walletId) {
             await this.walletRepository.updateWalletValue({
                 id: existing.walletId, 
-                balance: existing.amount, 
+                amount: existing.amount, 
                 operation: "expense"
             });
         }
@@ -98,7 +98,7 @@ export class IncomeService {
         if (payment.paid && payment.walletId) {
             await this.walletRepository.updateWalletValue({
                 id: payment.walletId, 
-                balance: newAmount, 
+                amount: newAmount, 
                 operation: "income"
             });
         }
@@ -121,7 +121,7 @@ export class IncomeService {
             const updatedIncome = await this.incomeRepository.updatePaidStatus(id, true, walletId, date);
             await this.walletRepository.updateWalletValue({
                 id: walletId, 
-                balance: amount ?? existing.amount, 
+                amount: amount ?? existing.amount, 
                 operation: "income"
             });
             return withDateOnly(updatedIncome);
@@ -131,7 +131,7 @@ export class IncomeService {
         if (storedWalletId) {
             await this.walletRepository.updateWalletValue({
                 id: storedWalletId, 
-                balance: amount ?? existing.amount, 
+                amount: amount ?? existing.amount, 
                 operation: "expense"
             });
         }
@@ -148,7 +148,7 @@ export class IncomeService {
         if (existing.paid && existing.walletId) {
             await this.walletRepository.updateWalletValue({
                 id: existing.walletId, 
-                balance: existing.amount, 
+                amount: existing.amount, 
                 operation: "expense"
             });
         }

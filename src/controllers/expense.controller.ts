@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ExpenseService } from "../services/expense.service";
-import { createExpenseSchema, updateExpenseSchema, updateExpensePaidStatusSchema } from "../types/Expense";
 import { idParamSchema, monthParamSchema } from "../types/Params";
+import { createExpenseSchema, updateExpenseSchema, updateExpensePaidStatusSchema } from "../types/Expense";
 
 export class ExpenseController {
     constructor(private expensesService: ExpenseService) { }
@@ -16,7 +16,7 @@ export class ExpenseController {
         return res.status(200).json(expenses);
     }
 
-    createExepense = async (req: Request, res: Response): Promise<Response> => {
+    createExpense = async (req: Request, res: Response): Promise<Response> => {
         const workspaceId = req.workspaceId!;
         const parsed = createExpenseSchema.safeParse({ ...req.body, workspaceId });
         if (!parsed.success) {

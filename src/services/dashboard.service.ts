@@ -1,8 +1,8 @@
 import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseService } from "./expense.service";
 import { IncomeService } from "./income.service";
-import { formatDateOnly } from "../utils/dates";
 import { Summary, DueTransaction, CategoryEstimate } from "../types/Dashboard";
+import { formatDateOnly } from "../utils/dates";
 
 export class DashboardService {
     constructor(
@@ -11,13 +11,13 @@ export class DashboardService {
         private incomeService: IncomeService
     ) { }
 
-    async getSumary(month: string, workspaceId: number): Promise<Summary> {
-        let summary = await this.dashboardRepository.getSumary(month, workspaceId);
+    async getSummary(month: string, workspaceId: number): Promise<Summary> {
+        let summary = await this.dashboardRepository.getSummary(month, workspaceId);
 
         if (Number(summary.totalExpenses) === 0 && Number(summary.totalIncome) === 0) {
             await this.expenseService.getExpenses(month, workspaceId);
             await this.incomeService.getIncomes(month, workspaceId);
-            summary = await this.dashboardRepository.getSumary(month, workspaceId);
+            summary = await this.dashboardRepository.getSummary(month, workspaceId);
         }
 
         const totalIncome = Number(summary.totalIncome);
@@ -57,7 +57,7 @@ export class DashboardService {
             unpaidExpenses,
             categoryEstimateRemaining,
             categoryEstimates,
-            balance: paidIncome - paidExpenses,
+            confirmedBalance: paidIncome - paidExpenses,
             projectedBalance: totalIncome - (totalExpenses + categoryEstimateRemaining)
         };
     }

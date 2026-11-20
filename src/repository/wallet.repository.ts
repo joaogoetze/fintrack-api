@@ -1,7 +1,6 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamel, toCamelMany } from '../utils/case';
-import { CreateWalletRequest, UpdateWalletRequest, UpdateWalletValueRequest, Wallet } from '../types/Wallet';
+import { CreateWalletRequest, UpdateWalletRequest, UpdateWalletValueRequest, Wallet } from "../types/Wallet";
+import { pool } from "../database";
+import { toCamel, toCamelMany } from "../utils/case";
 
 export class WalletRepository {
 
@@ -35,7 +34,7 @@ export class WalletRepository {
             SET balance = balance ${operator} $1
             WHERE id = $2
             RETURNING *
-            `, [data.balance, data.id]
+            `, [data.amount, data.id]
         );
         return toCamel(rows[0]);
     }

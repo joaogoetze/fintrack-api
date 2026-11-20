@@ -1,15 +1,15 @@
-import { Request, Response } from 'express';
-import { AuthService } from '../services/auth.service';
-import { inviteSseHub } from '../sse/inviteSseHub';
-import { 
-    googleLoginRequestSchema, 
-    createWorkspaceRequestSchema, 
+import { Request, Response } from "express";
+import { AuthService } from "../services/auth.service";
+import {
+    googleLoginRequestSchema,
+    createWorkspaceRequestSchema,
     updateWorkspaceRequestSchema,
-    inviteUserRequestSchema, 
-    inviteParamSchema, 
+    inviteUserRequestSchema,
+    inviteParamSchema,
     workspaceParamSchema,
     workspaceMemberParamSchema,
-} from '../types/Auth';
+} from "../types/Auth";
+import { inviteSseHub } from "../sse/inviteSseHub";
 
 const authService = new AuthService();
 

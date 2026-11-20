@@ -9,7 +9,7 @@ export class WalletController {
     getWallets = async (req: Request, res: Response): Promise<Response> => {
         const workspaceId = req.workspaceId!;
         const wallets = await this.walletService.getWallets(workspaceId);
-        return res.status(200).json(wallets)
+        return res.status(200).json(wallets);
     }
 
     createWallet = async (req: Request, res: Response): Promise<Response> => {

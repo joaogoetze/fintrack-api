@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { RecurringTransactionController } from "../controllers/recurringTransaction.controller";
-import { RecurringTransactionService } from "../services/recurringTransaction.service";
 import { RecurringTransactionRepository } from "../repository/recurringTransaction.repository";
+import { RecurringTransactionService } from "../services/recurringTransaction.service";
+import { RecurringTransactionController } from "../controllers/recurringTransaction.controller";
 
 export const recurringTransactionRoutes = Router();
 
@@ -13,4 +13,3 @@ recurringTransactionRoutes.get("/", recurringTransactionController.getRecurringT
 recurringTransactionRoutes.post("/", recurringTransactionController.createRecurringTransaction);
 recurringTransactionRoutes.put("/:id", recurringTransactionController.updateRecurringTransaction);
 recurringTransactionRoutes.delete("/:id", recurringTransactionController.deleteRecurringTransaction);
-

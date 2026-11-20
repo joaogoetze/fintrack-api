@@ -47,5 +47,5 @@ export type RecurringTransactionsResponse = {
     total: number;
     totalIncomes: number;
     totalExpenses: number;
-    balance: number;
+    netAmount: number;
 };

@@ -1,6 +1,6 @@
 import { parse, endOfMonth, setDate, format } from "date-fns";
-import { formatDateOnly } from "./dates";
 import { RecurringTransaction } from "../types/RecurringTransaction";
+import { formatDateOnly } from "./dates";
 
 export type MaterializeInput = {
     name: string;

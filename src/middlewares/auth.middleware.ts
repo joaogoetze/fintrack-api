@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { AuthRepository } from '../repository/auth.repository';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { AuthRepository } from "../repository/auth.repository";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fintrack_super_secret_jwt_key_change_in_production';
 const authRepository = new AuthRepository();

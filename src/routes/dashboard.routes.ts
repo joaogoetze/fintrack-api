@@ -1,6 +1,4 @@
 import { Router } from "express";
-import { DashboardController } from "../controllers/dashboard.controller";
-import { DashboardService } from "../services/dashboard.service";
 import { DashboardRepository } from "../repository/dashboard.repository";
 import { ExpenseRepository } from "../repository/expense.repository";
 import { IncomeRepository } from "../repository/income.repository";
@@ -8,6 +6,8 @@ import { RecurringTransactionRepository } from "../repository/recurringTransacti
 import { WalletRepository } from "../repository/wallet.repository";
 import { ExpenseService } from "../services/expense.service";
 import { IncomeService } from "../services/income.service";
+import { DashboardService } from "../services/dashboard.service";
+import { DashboardController } from "../controllers/dashboard.controller";
 
 export const dashboardRoutes = Router();
 
@@ -19,7 +19,7 @@ const walletRepository = new WalletRepository();
 const expenseService = new ExpenseService(expenseRepository, recurringTransactionRepository, walletRepository);
 const incomeService = new IncomeService(incomeRepository, recurringTransactionRepository, walletRepository);
 const dashboardService = new DashboardService(dashboardRepository, expenseService, incomeService);
-const dashboardController = new DashboardController(dashboardService)
+const dashboardController = new DashboardController(dashboardService);
 
-dashboardRoutes.get("/summary/:month", dashboardController.getSumary);
+dashboardRoutes.get("/summary/:month", dashboardController.getSummary);
 dashboardRoutes.get("/dues/:month", dashboardController.getDueTransactions);

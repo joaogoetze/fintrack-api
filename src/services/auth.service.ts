@@ -1,7 +1,7 @@
-import { OAuth2Client } from 'google-auth-library';
-import jwt from 'jsonwebtoken';
-import { AuthRepository } from '../repository/auth.repository';
-import { User, Workspace } from '../types/Auth';
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
+import { AuthRepository } from "../repository/auth.repository";
+import { User, Workspace } from "../types/Auth";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET || 'fintrack_super_secret_jwt_key_change_in_production';

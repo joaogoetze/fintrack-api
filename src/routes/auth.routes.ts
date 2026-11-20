@@ -1,22 +1,20 @@
-import { Router } from 'express';
-import { AuthController } from '../controllers/auth.controller';
-import { authMiddleware } from '../middlewares/auth.middleware';
+import { Router } from "express";
+import { AuthController } from "../controllers/auth.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 export const authRoutes = Router();
 const authController = new AuthController();
 
-authRoutes.post('/google', (req, res) => authController.googleLogin(req, res));
-authRoutes.get('/me', authMiddleware, (req, res) => authController.getMe(req, res));
+authRoutes.post("/google", (req, res) => authController.googleLogin(req, res));
+authRoutes.get("/me", authMiddleware, (req, res) => authController.getMe(req, res));
 
-// Rotas de Workspaces e Convites
-authRoutes.post('/workspaces', authMiddleware, (req, res) => authController.createWorkspace(req, res));
-authRoutes.put('/workspaces/:workspaceId', authMiddleware, (req, res) => authController.updateWorkspace(req, res));
-authRoutes.patch('/workspaces/:workspaceId', authMiddleware, (req, res) => authController.updateWorkspace(req, res));
-authRoutes.get('/workspaces/:workspaceId/members', authMiddleware, (req, res) => authController.getWorkspaceMembers(req, res));
-authRoutes.delete('/workspaces/:workspaceId/members/:userId', authMiddleware, (req, res) => authController.removeWorkspaceMember(req, res));
-authRoutes.post('/workspaces/:workspaceId/invites', authMiddleware, (req, res) => authController.inviteUser(req, res));
-authRoutes.get('/invites/stream', authMiddleware, (req, res) => authController.streamInvites(req, res));
-authRoutes.get('/invites', authMiddleware, (req, res) => authController.getMyInvites(req, res));
-authRoutes.post('/invites/:inviteId/accept', authMiddleware, (req, res) => authController.acceptInvite(req, res));
-authRoutes.post('/invites/:inviteId/reject', authMiddleware, (req, res) => authController.rejectInvite(req, res));
-
+authRoutes.post("/workspaces", authMiddleware, (req, res) => authController.createWorkspace(req, res));
+authRoutes.put("/workspaces/:workspaceId", authMiddleware, (req, res) => authController.updateWorkspace(req, res));
+authRoutes.patch("/workspaces/:workspaceId", authMiddleware, (req, res) => authController.updateWorkspace(req, res));
+authRoutes.get("/workspaces/:workspaceId/members", authMiddleware, (req, res) => authController.getWorkspaceMembers(req, res));
+authRoutes.delete("/workspaces/:workspaceId/members/:userId", authMiddleware, (req, res) => authController.removeWorkspaceMember(req, res));
+authRoutes.post("/workspaces/:workspaceId/invites", authMiddleware, (req, res) => authController.inviteUser(req, res));
+authRoutes.get("/invites/stream", authMiddleware, (req, res) => authController.streamInvites(req, res));
+authRoutes.get("/invites", authMiddleware, (req, res) => authController.getMyInvites(req, res));
+authRoutes.post("/invites/:inviteId/accept", authMiddleware, (req, res) => authController.acceptInvite(req, res));
+authRoutes.post("/invites/:inviteId/reject", authMiddleware, (req, res) => authController.rejectInvite(req, res));

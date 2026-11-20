@@ -1,11 +1,10 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamel, toCamelMany } from '../utils/case';
-import { DueTransaction } from '../types/Dashboard';
+import { pool } from "../database";
+import { toCamel, toCamelMany } from "../utils/case";
+import { DueTransaction } from "../types/Dashboard";
 
 export class DashboardRepository {
 
-    async getSumary(month: string, workspaceId: number): Promise<any> {
+    async getSummary(month: string, workspaceId: number): Promise<any> {
         const { rows } = await pool.query(`
             SELECT
                 (SELECT COALESCE(SUM(amount), 0)

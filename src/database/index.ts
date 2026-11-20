@@ -1,4 +1,4 @@
-import { Pool, types } from 'pg';
+import { Pool, types } from "pg";
 
 // DATE (OID 1082) -> string 'yyyy-MM-dd' em vez de JS Date.
 // Sem isso o pg devolve Date (meia-noite UTC) e o res.json

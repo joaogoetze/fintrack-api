@@ -26,7 +26,7 @@ export class RecurringTransactionService {
             total: items.length,
             totalIncomes,
             totalExpenses,
-            balance: totalIncomes - totalExpenses,
+            netAmount: totalIncomes - totalExpenses,
         };
     }
 

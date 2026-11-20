@@ -1,9 +1,8 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamel } from '../utils/case';
-import { formatDateOnly } from '../utils/dates';
-import { CreateTransferRequest, Transfer } from '../types/Transfer';
-import { AppError } from '../utils/errors';
+import { CreateTransferRequest, Transfer } from "../types/Transfer";
+import { pool } from "../database";
+import { AppError } from "../utils/errors";
+import { toCamel } from "../utils/case";
+import { formatDateOnly } from "../utils/dates";
 
 export class TransferRepository {
     async createTransfer(data: CreateTransferRequest): Promise<Transfer> {

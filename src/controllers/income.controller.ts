@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { IncomeService } from "../services/income.service";
-import { createIncomeSchema, updateIncomeSchema, updateIncomePaidStatusSchema } from "../types/Income";
 import { idParamSchema, monthParamSchema } from "../types/Params";
+import { createIncomeSchema, updateIncomeSchema, updateIncomePaidStatusSchema } from "../types/Income";
 
 export class IncomeController {
     constructor(private incomeService: IncomeService) { }

@@ -5,14 +5,14 @@ import { monthParamSchema } from "../types/Params";
 export class DashboardController {
     constructor(private dashboardService: DashboardService) {}
 
-    getSumary = async (req: Request, res: Response): Promise<Response> => {
+    getSummary = async (req: Request, res: Response): Promise<Response> => {
         const parsed = monthParamSchema.safeParse(req.params);
         if (!parsed.success) {
             return res.status(400).json({ errors: parsed.error.flatten() });
         }
         const workspaceId = req.workspaceId!;
-        const sumary = await this.dashboardService.getSumary(parsed.data.month, workspaceId);
-        return res.status(200).json(sumary);
+        const summary = await this.dashboardService.getSummary(parsed.data.month, workspaceId);
+        return res.status(200).json(summary);
     }
 
     getDueTransactions = async (req: Request, res: Response): Promise<Response> => {

@@ -1,7 +1,6 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamel, toCamelMany } from '../utils/case';
-import { CreateCategoryRequest, UpdateCategoryRequest, Category } from '../types/Category';
+import { CreateCategoryRequest, UpdateCategoryRequest, Category } from "../types/Category";
+import { pool } from "../database";
+import { toCamel, toCamelMany } from "../utils/case";
 
 export class CategoryRepository {
 

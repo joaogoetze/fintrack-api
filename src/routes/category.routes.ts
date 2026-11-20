@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { CategoryController } from "../controllers/category.controller";
-import { CategoryService } from "../services/category.service";
 import { CategoryRepository } from "../repository/category.repository";
+import { CategoryService } from "../services/category.service";
+import { CategoryController } from "../controllers/category.controller";
 
 export const categoryRoutes = Router();
 

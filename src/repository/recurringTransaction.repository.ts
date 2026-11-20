@@ -1,13 +1,12 @@
-import 'dotenv/config';
-import { pool } from '../database';
-import { toCamelMany } from '../utils/case';
-import { formatDateOnly } from '../utils/dates';
 import {
     RecurringTransaction,
     RecurringTransactionItem,
     CreateRecurringTransactionInput,
     UpdateRecurringTransactionInput
-} from '../types/RecurringTransaction';
+} from "../types/RecurringTransaction";
+import { formatDateOnly } from "../utils/dates";
+import { pool } from "../database";
+import { toCamelMany } from "../utils/case";
 
 function mapItem(row: Record<string, any>): RecurringTransactionItem {
     return {
